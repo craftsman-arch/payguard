@@ -13,11 +13,15 @@ import org.mapstruct.Mapping;
 public interface MerchantWebMapper {
 
     default RegisterMerchantCommand toCommand(RegisterMerchantRequest request) {
+
+        Email email = Email.of(request.email());
+        Country country = Country.of(request.country());
+
         return new RegisterMerchantCommand(
-                Email.of(request.email()),
+                email,
                 request.legalName(),
                 request.businessType(),
-                Country.of(request.country())
+                country
         );
     }
 
