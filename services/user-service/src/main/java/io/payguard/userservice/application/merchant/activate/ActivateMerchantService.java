@@ -21,7 +21,7 @@ public class ActivateMerchantService {
         Merchant merchant = merchantRepository.findById(command.merchantId())
                 .orElseThrow(() -> new MerchantNotFoundException(command.merchantId()));
 
-        merchant.activate(timeProvider.now());
+        merchant.activate("", timeProvider.now());
 
         merchantRepository.update(merchant);
 

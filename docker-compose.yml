@@ -5,6 +5,7 @@ services:
   postgres:
     image: postgres:17
     container_name: payguard-postgres
+
     environment:
       POSTGRES_DB: postgres
       POSTGRES_USER: payguard
@@ -18,13 +19,13 @@ services:
       - ./docker/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
 
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U payguard"]
+      test: [ "CMD-SHELL", "pg_isready -U payguard" ]
       interval: 10s
       timeout: 5s
       retries: 5
+
     networks:
       - payguard-network
-
 
   redis:
     image: redis:8
@@ -41,14 +42,13 @@ services:
       - ./docker/redis/redis.conf:/usr/local/etc/redis/redis.conf
 
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: [ "CMD", "redis-cli", "ping" ]
       interval: 10s
       timeout: 5s
       retries: 5
 
     networks:
       - payguard-network
-
 
   kafka:
     image: apache/kafka:4.0.0
@@ -73,36 +73,51 @@ services:
 
     volumes:
       - kafka-data:/var/lib/kafka/data
+
     networks:
       - payguard-network
 
-
   keycloak:
-   image: quay.io/keycloak/keycloak:26.4.5
-   container_name: payguard-keycloak
-   environment:
-    KC_BOOTSTRAP_ADMIN_USERNAME: admin
-    KC_BOOTSTRAP_ADMIN_PASSWORD: admin
-    KC_DB: postgres
-    KC_DB_URL: jdbc:postgresql://postgres:5432/keycloak_db
-    KC_DB_USERNAME: payguard
-    KC_DB_PASSWORD: payguard
+    image: quay.io/keycloak/keycloak:26.4.5
+    container_name: payguard-keycloak
 
-   ports:
-    - "8080:8080"
-   volumes:
-    - ./docker/keycloak/realms:/opt/keycloak/data/import
+    depends_on:
+      postgres:
+        condition: service_healthy
 
-   command:
-    - start-dev
-    - --import-realm
-   networks:
-    - payguard-network
-    
+    environment:
+      KC_BOOTSTRAP_ADMIN_USERNAME: admin
+      KC_BOOTSTRAP_ADMIN_PASSWORD: admin
+
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://postgres:5432/keycloak_db
+      KC_DB_USERNAME: payguard
+      KC_DB_PASSWORD: payguard
+
+      KC_HEALTH_ENABLED: "true"
+
+    ports:
+      - "8080:8080"
+
+    volumes:
+      - ./docker/keycloak/realm-export.json:/opt/keycloak/data/import/realm-export.json
+
+    command:
+      - start-dev
+      - --import-realm
+
+    healthcheck:
+      test: [ "CMD-SHELL", "exec 3<>/dev/tcp/localhost/8080" ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+    networks:
+      - payguard-network
+
 volumes:
   postgres-data:
   kafka-data:
-
 
 networks:
   payguard-network:

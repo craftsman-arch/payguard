@@ -18,3 +18,9 @@ spring:
 
   flyway:
     enabled: true
+
+  keycloak:
+    server-url: http://localhost:8080
+    realm: payguard
+    client-id: payguard-api
+    client-secret: payguard-secret
