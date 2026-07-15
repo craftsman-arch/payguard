@@ -14,15 +14,16 @@ public class Merchant {
 
     private final UUID id;
     private final Email email;
-    private final Country country;;
+    private final Country country;
     private final String legalName;
     private final BusinessType businessType;
+
     private MerchantStatus status;
     private String identityUserId;
     private String paymentAccountId;
+
     private final Instant createdAt;
     private Instant updatedAt;
-
 
     private Merchant(
             UUID id,
@@ -96,27 +97,62 @@ public class Merchant {
         );
     }
 
+    public boolean isPending() {
+        return status == MerchantStatus.PENDING;
+    }
+
     public boolean isActive() {
-        return MerchantStatus.ACTIVE.equals(status);
+        return status == MerchantStatus.ACTIVE;
     }
 
     public boolean isSuspended() {
         return status == MerchantStatus.SUSPENDED;
     }
 
-    public void linkIdentityProvider(String identityUserId, Instant now) {
+    public boolean hasIdentity() {
+        return identityUserId != null;
+    }
 
-        if (this.identityUserId != null) {
+    public boolean hasPaymentAccount() {
+        return paymentAccountId != null;
+    }
+
+    public boolean canProvisionIdentity() {
+        return isPending() && !hasIdentity();
+    }
+
+    public void activate(
+            String identityUserId,
+            Instant now
+    ) {
+
+        if (isActive()) {
+            throw new MerchantAlreadyActivatedException();
+        }
+
+        if (!isPending()) {
+            throw new MerchantNotReadyForActivationException();
+        }
+
+        if (hasIdentity()) {
             throw new MerchantAlreadyLinkedToIdentityProviderException();
         }
 
         this.identityUserId = identityUserId;
+        this.status = MerchantStatus.ACTIVE;
         this.updatedAt = now;
     }
 
-    public void linkPaymentProvider(String paymentAccountId, Instant now) {
+    public void linkPaymentProvider(
+            String paymentAccountId,
+            Instant now
+    ) {
 
-        if (this.paymentAccountId != null) {
+        if (!isActive()) {
+            throw new MerchantMustBeActiveException();
+        }
+
+        if (hasPaymentAccount()) {
             throw new MerchantAlreadyLinkedToPaymentProviderException();
         }
 
@@ -124,24 +160,10 @@ public class Merchant {
         this.updatedAt = now;
     }
 
-    public void activate(Instant now) {
-
-        if (isActive()) {
-            throw new MerchantAlreadyActivatedException();
-        }
-
-        if (identityUserId == null || paymentAccountId == null) {
-            throw new MerchantNotReadyForActivationException();
-        }
-
-        this.status = MerchantStatus.ACTIVE;
-        this.updatedAt = now;
-    }
-
     public void suspend(Instant now) {
 
-        if (isSuspended()) {
-            throw new MerchantAlreadySuspendedException();
+        if (!isActive()) {
+            throw new MerchantMustBeActiveException();
         }
 
         this.status = MerchantStatus.SUSPENDED;
