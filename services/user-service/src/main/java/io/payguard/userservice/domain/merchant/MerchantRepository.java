@@ -17,4 +17,6 @@ public interface MerchantRepository {
 
     boolean existsByEmail(Email email);
 
+    Optional<Merchant> findByIdentityUserId(String identityUserId);
+
 }

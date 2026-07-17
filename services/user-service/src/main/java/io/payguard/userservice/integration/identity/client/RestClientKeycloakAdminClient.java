@@ -50,6 +50,13 @@ public class RestClientKeycloakAdminClient implements KeycloakAdminClient {
                 return Optional.empty();
             }
 
+            if (users.length > 1) {
+                throw new KeycloakUserCreationException(
+                        "Multiple Keycloak users found for email '%s'."
+                                .formatted(email)
+                );
+            }
+
             return Optional.of(users[0]);
 
         } catch (RestClientException ex) {

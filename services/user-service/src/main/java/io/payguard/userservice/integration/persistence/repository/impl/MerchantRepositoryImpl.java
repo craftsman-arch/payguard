@@ -44,4 +44,12 @@ public class MerchantRepositoryImpl implements MerchantRepository {
     public boolean existsByEmail(Email email) {
         return repository.existsByEmail(email);
     }
+
+    @Override
+    public Optional<Merchant> findByIdentityUserId(String identityUserId) {
+
+        return repository
+                .findByIdentityUserId(identityUserId)
+                .map(mapper::toDomain);
+    }
 }

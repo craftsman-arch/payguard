@@ -19,7 +19,10 @@ public class ActivateMerchantService {
     public ActivateMerchantResult execute(ActivateMerchantCommand command) {
 
         Merchant merchant = merchantRepository.findById(command.merchantId())
-                .orElseThrow(() -> new MerchantNotFoundException(command.merchantId()));
+                .orElseThrow(() -> new MerchantNotFoundException(
+                        "Merchant with identity user id '%s' was not found."
+                                .formatted(command.merchantId())
+                ));
 
         merchant.activate("", timeProvider.now());
 
