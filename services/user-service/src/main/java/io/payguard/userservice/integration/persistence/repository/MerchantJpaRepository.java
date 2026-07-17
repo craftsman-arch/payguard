@@ -13,4 +13,6 @@ public interface MerchantJpaRepository extends JpaRepository<MerchantEntity, UUI
 
     boolean existsByEmail(Email email);
 
+    Optional<MerchantEntity> findByIdentityUserId(String identityUserId);
+
 }
