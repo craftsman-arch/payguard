@@ -31,9 +31,17 @@ public class MerchantIdentityProvisioningService {
 
         try {
 
+            String temporaryPassword = passwordGenerator.generate();
+
+            log.info(
+                    "Temporary password for {} = {}",
+                    merchant.getEmail().getValue(),
+                    temporaryPassword
+            );
+
             identityUserId = identityProvider.createUser(
                     merchant.getEmail(),
-                    passwordGenerator.generate()
+                    temporaryPassword
             );
 
             merchant.activate(
