@@ -1,0 +1,56 @@
+{
+  "realm": "payguard",
+  "enabled": true,
+
+  "accessTokenLifespan": 300,
+
+  "roles": {
+    "realm": [
+      {
+        "name": "MERCHANT_ADMIN"
+      },
+      {
+        "name": "MERCHANT_USER"
+      },
+      {
+        "name": "SYSTEM"
+      }
+    ]
+  },
+
+  "clients": [
+    {
+      "clientId": "payguard-api",
+
+      "enabled": true,
+
+      "protocol": "openid-connect",
+
+      "publicClient": false,
+
+      "clientAuthenticatorType": "client-secret",
+
+      "secret": "payguard-secret",
+
+      "serviceAccountsEnabled": true,
+
+      "standardFlowEnabled": false,
+
+      "directAccessGrantsEnabled": false,
+
+      "implicitFlowEnabled": false,
+
+      "authorizationServicesEnabled": false,
+
+      "redirectUris": [],
+
+      "webOrigins": [],
+
+      "defaultClientScopes": [
+        "profile",
+        "email",
+        "roles"
+      ]
+    }
+  ]
+}
