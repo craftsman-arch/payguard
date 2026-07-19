@@ -17,7 +17,15 @@ public class StripePaymentProvider implements PaymentProvider {
     @Override
     public String createMerchantAccount(Merchant merchant) {
 
-        return stripeClient.createAccount(mapper.toCreateAccountRequest(merchant));
+        return stripeClient.createAccount(
+
+                mapper.toCreateAccountRequest(
+                        merchant
+                ),
+
+                "merchant-account-"
+                        + merchant.getId()
+        );
     }
 
     @Override

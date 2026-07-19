@@ -6,7 +6,8 @@ import io.payguard.userservice.integration.payment.account.dto.StripeAccountRequ
 public interface StripeClient {
 
     String createAccount(
-            StripeAccountRequest request
+            StripeAccountRequest request,
+            String idempotencyKey
     );
 
     String createAccountLink(
