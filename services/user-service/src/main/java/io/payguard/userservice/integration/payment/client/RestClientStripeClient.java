@@ -34,7 +34,7 @@ public class RestClientStripeClient implements StripeClient {
     private final ObjectMapper objectMapper;
 
     @Override
-    public String createAccount(StripeAccountRequest request) {
+    public String createAccount(StripeAccountRequest request, String idempotencyKey) {
 
         try {
 
@@ -42,11 +42,15 @@ public class RestClientStripeClient implements StripeClient {
                     stripeRestClient
                             .post()
                             .uri(ACCOUNTS_ENDPOINT)
-                            .headers(headers ->
-                                    headers.setBearerAuth(
-                                            properties.secretKey()
-                                    )
-                            )
+                            .headers(headers -> {
+                                headers.setBearerAuth(
+                                        properties.secretKey()
+                                );
+                                headers.set(
+                                        "Idempotency-Key",
+                                        idempotencyKey
+                                );
+                            })
                             .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                             .body(buildAccountForm(request))
                             .retrieve()
