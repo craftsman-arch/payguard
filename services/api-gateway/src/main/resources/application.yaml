@@ -16,24 +16,19 @@ spring:
             connect-timeout: 5000
             response-timeout: 30s
 
-          routes:
-            - id: user-service
-              uri: ${USER_SERVICE_URL:http://localhost:8081}
-              predicates:
-                - Path=/api/users/**
-
-            - id: keycloak
-              uri: ${KEYCLOAK_URL:http://localhost:8080}
-              predicates:
-                - Path=/auth/**
-              filters:
-                - RewritePath=/auth/(?<segment>.*), /realms/payguard/protocol/openid-connect/${segment}
-
   security:
     oauth2:
       resourceserver:
         jwt:
           issuer-uri: ${KEYCLOAK_URL:http://localhost:8080}/realms/payguard
+
+gateway:
+  routes:
+    user-service:
+      uri: ${USER_SERVICE_URL:http://localhost:8081}
+
+    keycloak:
+      uri: ${KEYCLOAK_URL:http://localhost:8080}
 
 server:
   port: 8084
@@ -52,6 +47,11 @@ server:
       - text/html
 
 management:
+  tracing:
+    enabled: true
+    sampling:
+      probability: 1.0
+
   endpoint:
     gateway:
       access: read-only
@@ -83,6 +83,9 @@ management:
       application: ${spring.application.name}
 
 logging:
+  pattern:
+    level: "%5p [%X{traceId:-},%X{spanId:-}]"
+
   level:
     root: INFO
     org.springframework.cloud.gateway: INFO
