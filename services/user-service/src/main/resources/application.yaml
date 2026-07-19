@@ -30,6 +30,23 @@ keycloak:
   client-id: ${KEYCLOAK_CLIENT_ID:payguard-api}
   client-secret: ${KEYCLOAK_CLIENT_SECRET}
 
+stripe:
+  base-url: ${STRIPE_BASE_URL:https://api.stripe.com}
+  secret-key: ${STRIPE_SECRET_KEY}
+  webhook-secret: ${STRIPE_WEBHOOK_SECRET}
+
+  refresh-url: ${STRIPE_REFRESH_URL:http://localhost:3000/onboarding/retry}
+  return-url: ${STRIPE_RETURN_URL:http://localhost:3000/onboarding/success}
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+
+  swagger-ui:
+    path: /swagger-ui
+    operations-sorter: method
+    tags-sorter: alpha
+
 management:
   endpoints:
     web:

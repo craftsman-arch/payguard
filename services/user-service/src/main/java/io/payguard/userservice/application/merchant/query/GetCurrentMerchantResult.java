@@ -7,6 +7,7 @@ import java.time.Instant;
 import java.util.UUID;
 
 public record GetCurrentMerchantResult(
+
         UUID id,
         String email,
         String legalName,

@@ -5,5 +5,4 @@ public enum MerchantStatus {
     PENDING,
     ACTIVE,
     SUSPENDED
-
 }

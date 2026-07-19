@@ -4,6 +4,10 @@ import io.payguard.userservice.domain.merchant.Merchant;
 
 public interface PaymentProvider {
 
-    PaymentAccount createAccount(Merchant merchant);
+    String createMerchantAccount(Merchant merchant);
+
+    String createMerchantOnboardingLink(Merchant merchant);
+
+    void deleteMerchantAccount(String paymentAccountId);
 
 }

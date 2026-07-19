@@ -29,8 +29,7 @@ public class RealmRoleAuthoritiesConverter implements Converter<Jwt, Collection<
             return Collections.emptyList();
         }
 
-        List<String> roles =
-                (List<String>) realmAccess.get(ROLES);
+        List<String> roles = (List<String>) realmAccess.get(ROLES);
 
         if (roles == null || roles.isEmpty()) {
             return Collections.emptyList();

@@ -6,12 +6,8 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 public record KeycloakProperties(
 
         String serverUrl,
-
         String realm,
-
         String clientId,
-
         String clientSecret
-
 ) {
 }

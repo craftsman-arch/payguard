@@ -57,6 +57,7 @@ public class Merchant {
             @NonNull Country country,
             @NonNull Instant now
     ) {
+
         return new Merchant(
                 id,
                 email,
@@ -83,6 +84,7 @@ public class Merchant {
             @NonNull Instant createdAt,
             @NonNull Instant updatedAt
     ) {
+
         return new Merchant(
                 id,
                 email,
@@ -121,8 +123,45 @@ public class Merchant {
         return isPending() && !hasIdentity();
     }
 
-    public void activate(
+    public boolean canProvisionPaymentAccount() {
+        return isPending() && !hasPaymentAccount();
+    }
+
+    public void linkIdentity(
             String identityUserId,
+            Instant now
+    ) {
+
+        if (!isPending()) {
+            throw new MerchantNotReadyForActivationException();
+        }
+
+        if (hasIdentity()) {
+            throw new MerchantAlreadyLinkedToIdentityProviderException();
+        }
+
+        this.identityUserId = identityUserId;
+        this.updatedAt = now;
+    }
+
+    public void linkPaymentProvider(
+            String paymentAccountId,
+            Instant now
+    ) {
+
+        if (!isPending()) {
+            throw new MerchantNotReadyForActivationException();
+        }
+
+        if (hasPaymentAccount()) {
+            throw new MerchantAlreadyLinkedToPaymentProviderException();
+        }
+
+        this.paymentAccountId = paymentAccountId;
+        this.updatedAt = now;
+    }
+
+    public void activate(
             Instant now
     ) {
 
@@ -134,33 +173,21 @@ public class Merchant {
             throw new MerchantNotReadyForActivationException();
         }
 
-        if (hasIdentity()) {
-            throw new MerchantAlreadyLinkedToIdentityProviderException();
+        if (!hasIdentity()) {
+            throw new MerchantIdentityNotLinkedException();
         }
 
-        this.identityUserId = identityUserId;
+        if (!hasPaymentAccount()) {
+            throw new MerchantPaymentAccountNotLinkedException();
+        }
+
         this.status = MerchantStatus.ACTIVE;
         this.updatedAt = now;
     }
 
-    public void linkPaymentProvider(
-            String paymentAccountId,
+    public void suspend(
             Instant now
     ) {
-
-        if (!isActive()) {
-            throw new MerchantMustBeActiveException();
-        }
-
-        if (hasPaymentAccount()) {
-            throw new MerchantAlreadyLinkedToPaymentProviderException();
-        }
-
-        this.paymentAccountId = paymentAccountId;
-        this.updatedAt = now;
-    }
-
-    public void suspend(Instant now) {
 
         if (!isActive()) {
             throw new MerchantMustBeActiveException();

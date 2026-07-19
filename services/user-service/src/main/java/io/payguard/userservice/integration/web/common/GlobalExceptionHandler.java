@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -25,6 +26,9 @@ public class GlobalExceptionHandler {
 
     private static final String VALIDATION_FAILED_MESSAGE =
             "Validation failed.";
+
+    private static final String ACCESS_DENIED_MESSAGE =
+            "Access denied.";
 
     private final TimeProvider timeProvider;
 
@@ -94,6 +98,23 @@ public class GlobalExceptionHandler {
                                 errors
                         )
                 );
+    }
+
+    @ExceptionHandler(AuthorizationDeniedException.class)
+    public ResponseEntity<ErrorResponse> handleAuthorizationDenied(
+            AuthorizationDeniedException exception,
+            HttpServletRequest request
+    ) {
+
+        log.warn("Access denied while processing request [{} {}]",
+                request.getMethod(),
+                request.getRequestURI());
+
+        return buildErrorResponse(
+                HttpStatus.FORBIDDEN,
+                ACCESS_DENIED_MESSAGE,
+                request
+        );
     }
 
     @ExceptionHandler(Exception.class)

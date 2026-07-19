@@ -11,12 +11,12 @@ public interface MerchantRepository {
 
     void update(Merchant merchant);
 
-    Optional<Merchant> findById(UUID merchantId);
+    Optional<Merchant> findById(UUID id);
 
     Optional<Merchant> findByEmail(Email email);
 
-    boolean existsByEmail(Email email);
-
     Optional<Merchant> findByIdentityUserId(String identityUserId);
+
+    Optional<Merchant> findByPaymentAccountId(String paymentAccountId);
 
 }

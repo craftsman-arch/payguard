@@ -12,10 +12,7 @@ import org.springframework.web.client.RestClient;
 public class KeycloakConfiguration {
 
     @Bean
-    public RestClient keycloakRestClient(
-            RestClient.Builder builder,
-            KeycloakProperties properties
-    ) {
+    public RestClient keycloakRestClient(RestClient.Builder builder, KeycloakProperties properties) {
 
         log.info("Keycloak URL: {}", properties.serverUrl());
         return builder

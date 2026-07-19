@@ -7,11 +7,8 @@ import io.payguard.userservice.domain.merchant.value.Email;
 public record RegisterMerchantCommand(
 
         Email email,
-
         String legalName,
-
         BusinessType businessType,
-
         Country country
 
 ) {

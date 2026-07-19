@@ -27,7 +27,6 @@ public interface MerchantWebMapper {
         );
     }
 
-    @Mapping(target = "id", source = "merchantId")
     RegisterMerchantResponse toResponse(RegisterMerchantResult result);
 
     GetCurrentMerchantResponse toResponse(GetCurrentMerchantResult result);
