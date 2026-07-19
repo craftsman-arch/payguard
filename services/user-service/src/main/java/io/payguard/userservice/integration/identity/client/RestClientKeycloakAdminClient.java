@@ -1,8 +1,10 @@
 package io.payguard.userservice.integration.identity.client;
 
 import io.payguard.userservice.integration.identity.KeycloakProperties;
+import io.payguard.userservice.integration.identity.KeycloakRoleRepresentation;
 import io.payguard.userservice.integration.identity.dto.KeycloakCreateUserRequest;
 import io.payguard.userservice.integration.identity.dto.KeycloakUser;
+import io.payguard.userservice.integration.identity.exception.KeycloakRoleAssignmentException;
 import io.payguard.userservice.integration.identity.exception.KeycloakUserCreationException;
 import io.payguard.userservice.integration.identity.exception.KeycloakUserDeletionException;
 import io.payguard.userservice.integration.identity.token.KeycloakTokenClient;
@@ -14,6 +16,7 @@ import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientException;
 
 import java.net.URI;
+import java.util.List;
 import java.util.Optional;
 
 @Component
@@ -22,6 +25,12 @@ public class RestClientKeycloakAdminClient implements KeycloakAdminClient {
 
     private static final String USERS_ENDPOINT =
             "/admin/realms/{realm}/users";
+
+    private static final String ROLE_ENDPOINT =
+            "/admin/realms/{realm}/roles/{roleName}";
+
+    private static final String USER_REALM_ROLE_MAPPING_ENDPOINT =
+            "/admin/realms/{realm}/users/{userId}/role-mappings/realm";
 
     private final RestClient keycloakRestClient;
     private final KeycloakProperties properties;
@@ -112,6 +121,66 @@ public class RestClientKeycloakAdminClient implements KeycloakAdminClient {
                     ex
             );
         }
+    }
+
+    @Override
+    public void assignRealmRole(String userId, String roleName) {
+
+        try {
+
+            KeycloakRoleRepresentation role = findRealmRole(roleName);
+            keycloakRestClient
+                    .post()
+                    .uri(
+                            USER_REALM_ROLE_MAPPING_ENDPOINT,
+                            properties.realm(),
+                            userId
+                    )
+                    .headers(headers ->
+                            headers.setBearerAuth(
+                                    tokenClient.getAccessToken()
+                            )
+                    )
+                    .body(List.of(role))
+                    .retrieve()
+                    .toBodilessEntity();
+
+        } catch (RestClientException ex) {
+
+            throw new KeycloakRoleAssignmentException(
+                    "Failed to assign realm role '%s'."
+                            .formatted(roleName),
+                    ex
+            );
+        }
+    }
+
+    private KeycloakRoleRepresentation findRealmRole(String roleName) {
+
+        KeycloakRoleRepresentation role =
+                keycloakRestClient
+                        .get()
+                        .uri(
+                                ROLE_ENDPOINT,
+                                properties.realm(),
+                                roleName
+                        )
+                        .headers(headers ->
+                                headers.setBearerAuth(
+                                        tokenClient.getAccessToken()
+                                )
+                        )
+                        .retrieve()
+                        .body(KeycloakRoleRepresentation.class);
+
+        if (role == null) {
+            throw new KeycloakRoleAssignmentException(
+                    "Realm role '%s' was not found."
+                            .formatted(roleName)
+            );
+        }
+
+        return role;
     }
 
     @Override

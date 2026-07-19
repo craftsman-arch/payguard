@@ -37,12 +37,16 @@ public class SecurityConfiguration {
                         .requestMatchers(
                                 "/actuator/health",
                                 "/actuator/health/**",
-                                "/actuator/info"
+                                "/actuator/info",
+                                "/swagger-ui/**",
+                                "/swagger-ui.html",
+                                "/v3/api-docs/**"
                         ).permitAll()
 
                         .requestMatchers(
                                 HttpMethod.POST,
-                                "/api/v1/merchants"
+                                "/api/v1/merchants",
+                                "/api/v1/webhooks/stripe"
                         ).permitAll()
 
                         .anyRequest().authenticated()

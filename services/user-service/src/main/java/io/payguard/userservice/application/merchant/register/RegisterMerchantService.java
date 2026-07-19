@@ -9,16 +9,17 @@ import org.springframework.stereotype.Service;
 public class RegisterMerchantService {
 
     private final MerchantRegistrationService registrationService;
-    private final MerchantIdentityProvisioningService identityProvisioningService;
+    private final MerchantOnboardingService onboardingService;
 
     public RegisterMerchantResult execute(RegisterMerchantCommand command) {
 
         Merchant merchant = registrationService.register(command);
-
-        identityProvisioningService.provision(merchant);
+        MerchantOnboardingResult onboarding = onboardingService.onboard(merchant);
 
         return new RegisterMerchantResult(
-                merchant.getId()
+                merchant.getId(),
+                merchant.getStatus(),
+                onboarding.onboardingUrl()
         );
     }
 

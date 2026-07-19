@@ -11,6 +11,8 @@ public interface KeycloakAdminClient {
 
     Optional<KeycloakUser> findByEmail(String email);
 
+    void assignRealmRole(String userId, String roleName);
+
     void deleteUser(String userId);
 
 }
