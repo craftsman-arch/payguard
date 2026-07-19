@@ -1,8 +1,5 @@
-package io.payguard.apigateway.config;
+package io.payguard.apigateway.security;
 
-import io.payguard.apigateway.converter.RealmRoleAuthoritiesConverter;
-import io.payguard.apigateway.security.GatewayAccessDeniedHandler;
-import io.payguard.apigateway.security.GatewayAuthenticationEntryPoint;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -42,7 +39,7 @@ public class SecurityConfiguration {
                         .pathMatchers(
                                 "/auth/**",
                                 "/actuator/**",
-                                "/api/users/merchants"
+                                "/api/v1/merchants"
                         )
                         .permitAll()
 

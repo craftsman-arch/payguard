@@ -1,4 +1,4 @@
-package io.payguard.apigateway.converter;
+package io.payguard.apigateway.security;
 
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.security.core.GrantedAuthority;
