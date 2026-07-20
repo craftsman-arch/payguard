@@ -13,43 +13,37 @@ public class RouteConfiguration {
     private final GatewayRoutesProperties properties;
 
     @Bean
-    RouteLocator routeLocator(
-            RouteLocatorBuilder builder
-    ) {
+    public RouteLocator routeLocator(RouteLocatorBuilder builder) {
 
         return builder.routes()
-
                 .route(
                         "user-service",
                         route -> route
-
-                                .path("/api/v1/merchants/**")
-
+                                .path("/api/users/**")
+                                .filters(filter ->
+                                        filter.rewritePath(
+                                                "/api/users/(?<segment>.*)",
+                                                "/api/v1/${segment}"
+                                        )
+                                )
                                 .uri(
                                         properties.userService().uri()
                                 )
                 )
-
                 .route(
                         "keycloak",
                         route -> route
-
                                 .path("/auth/**")
-
                                 .filters(filter ->
-
                                         filter.rewritePath(
                                                 "/auth/(?<segment>.*)",
                                                 "/realms/payguard/protocol/openid-connect/${segment}"
                                         )
                                 )
-
                                 .uri(
                                         properties.keycloak().uri()
                                 )
                 )
-
                 .build();
     }
-
 }

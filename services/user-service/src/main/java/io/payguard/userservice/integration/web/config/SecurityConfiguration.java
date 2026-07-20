@@ -40,7 +40,8 @@ public class SecurityConfiguration {
                                 "/actuator/info",
                                 "/swagger-ui/**",
                                 "/swagger-ui.html",
-                                "/v3/api-docs/**"
+                                "/v3/api-docs/**",
+                                "/actuator/prometheus"
                         ).permitAll()
 
                         .requestMatchers(
