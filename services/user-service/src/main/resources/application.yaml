@@ -48,10 +48,21 @@ springdoc:
     tags-sorter: alpha
 
 management:
+  metrics:
+    distribution:
+      percentiles-histogram:
+        http:
+          server:
+            requests: true
+    tags:
+      application: ${spring.application.name}
   tracing:
     enabled: true
     sampling:
       probability: 1.0
+  otlp:
+    tracing:
+      endpoint: http://localhost:4318/v1/traces
 
   endpoint:
     health:
@@ -66,11 +77,11 @@ management:
           - metrics
           - prometheus
 
-  metrics:
-    tags:
-      application: ${spring.application.name}
+
 
 logging:
+  file:
+    name: ${LOG_DIR:logs}/${spring.application.name}.log
   pattern:
     level: "%5p [%X{traceId:-},%X{spanId:-}]"
 
