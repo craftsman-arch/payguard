@@ -115,9 +115,136 @@ services:
     networks:
       - payguard-network
 
+  tempo:
+    image: grafana/tempo:2.8.1
+    container_name: payguard-tempo
+
+    command:
+      - "-config.file=/etc/tempo/tempo.yml"
+
+    volumes:
+      - ./docker/observability/tempo/tempo.yml:/etc/tempo/tempo.yml
+
+    ports:
+      - "3200:3200"
+      - "4317"
+
+    networks:
+      - payguard-network
+
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:0.130.1
+    container_name: payguard-otel-collector
+
+    command:
+      - "--config=/etc/otelcol/otel-collector.yml"
+
+    volumes:
+      - ./docker/observability/otel/otel-collector.yml:/etc/otelcol/otel-collector.yml
+
+    ports:
+      - "4317:4317"
+      - "4318:4318"
+
+    depends_on:
+      - tempo
+
+    networks:
+      - payguard-network
+
+  prometheus:
+    image: prom/prometheus:v3.5.0
+    container_name: payguard-prometheus
+
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+
+    volumes:
+      - ./docker/observability/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+
+    ports:
+      - "9090:9090"
+
+    depends_on:
+      - tempo
+
+    networks:
+      - payguard-network
+
+  loki:
+    image: grafana/loki:3.5.5
+
+    container_name: payguard-loki
+
+    command:
+      - -config.file=/etc/loki/loki.yml
+
+    volumes:
+
+      - ./docker/observability/loki/loki.yml:/etc/loki/loki.yml
+
+      - loki-data:/loki
+
+    ports:
+      - "3100:3100"
+
+    networks:
+      - payguard-network
+
+  alloy:
+    image: grafana/alloy:v1.10.2
+
+    container_name: payguard-alloy
+
+    command:
+      - run
+      - /etc/alloy/config.alloy
+
+    volumes:
+      - ./docker/observability/alloy/config.alloy:/etc/alloy/config.alloy
+
+      - ./logs:/var/log/payguard
+
+    depends_on:
+      - loki
+
+    ports:
+      - "12345:12345"
+
+    networks:
+      - payguard-network
+
+  grafana:
+    image: grafana/grafana:12.1.0
+    container_name: payguard-grafana
+
+    ports:
+      - "3000:3000"
+
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: admin
+
+    volumes:
+      - grafana-data:/var/lib/grafana
+
+      - ./docker/observability/grafana/grafana.ini:/etc/grafana/grafana.ini
+
+      - ./docker/observability/grafana/provisioning:/etc/grafana/provisioning
+
+    depends_on:
+      - prometheus
+      - tempo
+      - loki
+
+    networks:
+      - payguard-network
+
 volumes:
   postgres-data:
   kafka-data:
+  grafana-data:
+  loki-data:
 
 networks:
   payguard-network:

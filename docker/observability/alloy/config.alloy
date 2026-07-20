@@ -1,0 +1,30 @@
+logging {
+  level = "info"
+}
+
+local.file_match "payguard" {
+  path_targets = [
+    {
+      __path__ = "/var/log/payguard/api-gateway.log",
+      service_name = "api-gateway",
+    },
+    {
+      __path__ = "/var/log/payguard/user-service.log",
+      service_name = "user-service",
+    },
+  ]
+}
+
+loki.source.file "payguard" {
+  targets = local.file_match.payguard.targets
+
+  forward_to = [
+    loki.write.default.receiver,
+  ]
+}
+
+loki.write "default" {
+  endpoint {
+    url = "http://loki:3100/loki/api/v1/push"
+  }
+}
