@@ -1,7 +1,7 @@
 package io.payguard.userservice.integration.web.webhook;
 
-import io.payguard.userservice.application.payment.events.ProcessStripeEventCommand;
-import io.payguard.userservice.application.payment.events.ProcessStripeEventService;
+import io.payguard.userservice.application.payment.webhook.ProcessPaymentProviderWebhookCommand;
+import io.payguard.userservice.application.payment.webhook.ProcessPaymentProviderWebhookService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
@@ -11,10 +11,9 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/v1/webhooks/stripe")
 public class StripeWebhookController {
 
-    private static final String STRIPE_SIGNATURE_HEADER =
-            "Stripe-Signature";
+    private static final String STRIPE_SIGNATURE_HEADER = "Stripe-Signature";
 
-    private final ProcessStripeEventService processStripeEventService;
+    private final ProcessPaymentProviderWebhookService processWebhookService;
 
     @PostMapping
     @ResponseStatus(HttpStatus.OK)
@@ -27,12 +26,11 @@ public class StripeWebhookController {
             String signature
     ) {
 
-        processStripeEventService.execute(
-                new ProcessStripeEventCommand(
+        processWebhookService.execute(
+                new ProcessPaymentProviderWebhookCommand(
                         payload,
                         signature
                 )
         );
     }
-
 }

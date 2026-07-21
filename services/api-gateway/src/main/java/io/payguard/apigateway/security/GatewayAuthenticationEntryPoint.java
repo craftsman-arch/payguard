@@ -22,10 +22,7 @@ public class GatewayAuthenticationEntryPoint
     private final ErrorResponseWriter errorResponseWriter;
 
     @Override
-    public Mono<Void> commence(
-            @NonNull ServerWebExchange exchange,
-            @NonNull AuthenticationException exception
-    ) {
+    public Mono<Void> commence(@NonNull ServerWebExchange exchange, @NonNull AuthenticationException exception) {
 
         exchange.getResponse().setStatusCode(STATUS);
 

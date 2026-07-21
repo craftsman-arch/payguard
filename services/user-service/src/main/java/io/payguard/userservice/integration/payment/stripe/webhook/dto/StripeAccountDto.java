@@ -1,10 +1,10 @@
-package io.payguard.userservice.integration.payment.events.dto;
+package io.payguard.userservice.integration.payment.stripe.webhook.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-public record StripeAccount(
+public record StripeAccountDto(
 
         String id,
 
@@ -13,10 +13,5 @@ public record StripeAccount(
 
         @JsonProperty("payouts_enabled")
         boolean payoutsEnabled
-
 ) {
-
-    public boolean isFullyEnabled() {
-        return chargesEnabled && payoutsEnabled;
-    }
 }
