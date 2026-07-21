@@ -17,18 +17,41 @@ public class RouteConfiguration {
 
         return builder.routes()
                 .route(
-                        "user-service",
+                        "merchant-registration",
                         route -> route
-                                .path("/api/users/**")
+                                .path("/api/merchants")
                                 .filters(filter ->
-                                        filter.rewritePath(
-                                                "/api/users/(?<segment>.*)",
-                                                "/api/v1/${segment}"
+                                        filter.setPath(
+                                                "/api/v1/merchants"
                                         )
                                 )
                                 .uri(
                                         properties.userService().uri()
                                 )
+                )
+                .route(
+                        "user-service",
+                        route -> route
+                                .path("/api/merchants/**")
+                                .filters(filter ->
+                                        filter.rewritePath(
+                                                "/api/merchants/(?<segment>.*)",
+                                                "/api/v1/merchants/${segment}"
+                                        )
+                                )
+                                .uri(properties.userService().uri())
+                )
+                .route(
+                        "stripe-webhooks",
+                        route -> route
+                                .path("/api/webhooks/stripe")
+                                .filters(filter ->
+                                        filter.rewritePath(
+                                                "/api/webhooks/stripe",
+                                                "/api/v1/webhooks/stripe"
+                                        )
+                                )
+                                .uri(properties.userService().uri())
                 )
                 .route(
                         "keycloak",

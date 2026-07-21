@@ -20,39 +20,33 @@ public class SecurityConfiguration {
     private final GatewayAccessDeniedHandler accessDeniedHandler;
 
     @Bean
-    public SecurityWebFilterChain securityWebFilterChain(
-            ServerHttpSecurity http
-    ) {
+    public SecurityWebFilterChain securityWebFilterChain(ServerHttpSecurity http) {
 
         return http
                 .csrf(ServerHttpSecurity.CsrfSpec::disable)
                 .httpBasic(ServerHttpSecurity.HttpBasicSpec::disable)
                 .formLogin(ServerHttpSecurity.FormLoginSpec::disable)
                 .logout(ServerHttpSecurity.LogoutSpec::disable)
-
                 .exceptionHandling(exceptionHandling -> exceptionHandling
                         .authenticationEntryPoint(authenticationEntryPoint)
                         .accessDeniedHandler(accessDeniedHandler)
                 )
-
                 .authorizeExchange(exchange -> exchange
                         .pathMatchers(
                                 "/auth/**",
                                 "/actuator/**",
-                                "/api/v1/merchants"
+                                "/api/merchants"
                         )
                         .permitAll()
 
                         .anyExchange()
                         .authenticated()
                 )
-
                 .oauth2ResourceServer(oauth2 ->
                         oauth2.jwt(jwt ->
                                 jwt.jwtAuthenticationConverter(this::convert)
                         )
                 )
-
                 .build();
     }
 

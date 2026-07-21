@@ -22,10 +22,7 @@ public class GatewayAccessDeniedHandler
     private final ErrorResponseWriter errorResponseWriter;
 
     @Override
-    public Mono<Void> handle(
-            @NonNull ServerWebExchange exchange,
-            @NonNull AccessDeniedException exception
-    ) {
+    public Mono<Void> handle(@NonNull ServerWebExchange exchange, @NonNull AccessDeniedException exception) {
 
         exchange.getResponse().setStatusCode(STATUS);
 
