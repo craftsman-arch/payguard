@@ -4,7 +4,7 @@ public enum IdentityRole {
 
     MERCHANT("MERCHANT"),
     ADMIN("ADMIN"),
-    SUPPORT("SUPPORT");
+    RISK_ANALYST("RISK_ANALYST");
 
     private final String value;
 

@@ -10,6 +10,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.ArrayList;
 
 @Component
 public class RealmRoleAuthoritiesConverter implements Converter<Jwt, Collection<GrantedAuthority>> {
@@ -22,23 +23,23 @@ public class RealmRoleAuthoritiesConverter implements Converter<Jwt, Collection<
     @SuppressWarnings("unchecked")
     public Collection<GrantedAuthority> convert(Jwt jwt) {
 
-        Map<String, Object> realmAccess =
-                jwt.getClaim(REALM_ACCESS);
+        Map<String, Object> realmAccess = jwt.getClaim(REALM_ACCESS);
+        List<GrantedAuthority> authorities = new ArrayList<>();
+        List<String> roles = realmAccess == null ? Collections.emptyList() :
+                (List<String>) realmAccess.getOrDefault(ROLES, Collections.emptyList());
 
-        if (realmAccess == null) {
-            return Collections.emptyList();
-        }
-
-        List<String> roles = (List<String>) realmAccess.get(ROLES);
-
-        if (roles == null || roles.isEmpty()) {
-            return Collections.emptyList();
-        }
-
-        return roles.stream()
+        roles.stream()
                 .map(role -> new SimpleGrantedAuthority(ROLE_PREFIX + role.toUpperCase()))
-                .<GrantedAuthority>map(authority -> authority)
-                .toList();
+                .forEach(authorities::add);
+
+        String scope = jwt.getClaimAsString("scope");
+        if (scope != null) {
+            for (String value : scope.split(" ")) {
+                authorities.add(new SimpleGrantedAuthority("SCOPE_" + value));
+            }
+        }
+
+        return authorities;
     }
 
 }

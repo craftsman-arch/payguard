@@ -1,55 +1,122 @@
 {
   "realm": "payguard",
   "enabled": true,
-
   "accessTokenLifespan": 300,
-
+  "otpPolicyType": "totp",
+  "requiredActions": [
+    {
+      "alias": "CONFIGURE_TOTP",
+      "name": "Configure OTP",
+      "providerId": "CONFIGURE_TOTP",
+      "enabled": true,
+      "defaultAction": true,
+      "priority": 10
+    }
+  ],
   "roles": {
     "realm": [
       {
-        "name": "MERCHANT_ADMIN"
+        "name": "MERCHANT"
       },
       {
-        "name": "MERCHANT_USER"
+        "name": "ADMIN"
       },
       {
-        "name": "SYSTEM"
+        "name": "RISK_ANALYST"
       }
     ]
   },
-
+  "clientScopes": [
+    {"name":"merchant.payment-context.read","protocol":"openid-connect","attributes":{"include.in.token.scope":"true"}},
+    {"name":"staff.invitation.delivery-link.read","protocol":"openid-connect","attributes":{"include.in.token.scope":"true"}}
+  ],
   "clients": [
     {
       "clientId": "payguard-api",
-
       "enabled": true,
-
       "protocol": "openid-connect",
-
       "publicClient": false,
-
       "clientAuthenticatorType": "client-secret",
-
       "secret": "payguard-secret",
-
       "serviceAccountsEnabled": true,
-
       "standardFlowEnabled": false,
-
       "directAccessGrantsEnabled": false,
-
-      "implicitFlowEnabled": false,
-
-      "authorizationServicesEnabled": false,
-
-      "redirectUris": [],
-
-      "webOrigins": [],
-
       "defaultClientScopes": [
         "profile",
         "email",
         "roles"
+      ]
+    },
+    {
+      "clientId": "payment-service",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": false,
+      "clientAuthenticatorType": "client-secret",
+      "secret": "${PAYMENT_SERVICE_CLIENT_SECRET}",
+      "serviceAccountsEnabled": true,
+      "standardFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "defaultClientScopes": [
+        "roles",
+        "merchant.payment-context.read"
+      ],
+      "protocolMappers": [
+        {
+          "name": "user-service-audience",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "config": {
+            "included.client.audience": "user-service",
+            "access.token.claim": "true",
+            "id.token.claim": "false"
+          }
+        }
+      ]
+    },
+    {
+      "clientId": "notification-service",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": false,
+      "clientAuthenticatorType": "client-secret",
+      "secret": "${NOTIFICATION_SERVICE_CLIENT_SECRET}",
+      "serviceAccountsEnabled": true,
+      "standardFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "defaultClientScopes": [
+        "roles",
+        "staff.invitation.delivery-link.read"
+      ],
+      "protocolMappers": [
+        {
+          "name": "user-service-audience",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "config": {
+            "included.client.audience": "user-service",
+            "access.token.claim": "true",
+            "id.token.claim": "false"
+          }
+        }
+      ]
+    }
+  ],
+  "users": [
+    {
+      "username": "${PAYGUARD_BOOTSTRAP_ADMIN_EMAIL}",
+      "email": "${PAYGUARD_BOOTSTRAP_ADMIN_EMAIL}",
+      "enabled": true,
+      "emailVerified": true,
+      "realmRoles": [
+        "ADMIN"
+      ],
+      "credentials": [
+        {
+          "type": "password",
+          "value": "${PAYGUARD_BOOTSTRAP_ADMIN_PASSWORD}",
+          "temporary": true
+        }
       ]
     }
   ]
