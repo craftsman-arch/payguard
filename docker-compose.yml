@@ -87,7 +87,11 @@ services:
 
     environment:
       KC_BOOTSTRAP_ADMIN_USERNAME: admin
-      KC_BOOTSTRAP_ADMIN_PASSWORD: admin
+      KC_BOOTSTRAP_ADMIN_PASSWORD: ${KEYCLOAK_BOOTSTRAP_ADMIN_PASSWORD:?Set KEYCLOAK_BOOTSTRAP_ADMIN_PASSWORD in .env}
+      PAYGUARD_BOOTSTRAP_ADMIN_EMAIL: ${PAYGUARD_BOOTSTRAP_ADMIN_EMAIL:-platform-admin@payguard.local}
+      PAYGUARD_BOOTSTRAP_ADMIN_PASSWORD: ${PAYGUARD_BOOTSTRAP_ADMIN_PASSWORD:?Set PAYGUARD_BOOTSTRAP_ADMIN_PASSWORD in .env}
+      PAYMENT_SERVICE_CLIENT_SECRET: ${PAYMENT_SERVICE_CLIENT_SECRET:?Set PAYMENT_SERVICE_CLIENT_SECRET in .env}
+      NOTIFICATION_SERVICE_CLIENT_SECRET: ${NOTIFICATION_SERVICE_CLIENT_SECRET:?Set NOTIFICATION_SERVICE_CLIENT_SECRET in .env}
 
       KC_DB: postgres
       KC_DB_URL: jdbc:postgresql://postgres:5432/keycloak_db
@@ -100,7 +104,7 @@ services:
       - "8080:8080"
 
     volumes:
-      - ./docker/keycloak/realm-export.json:/opt/keycloak/data/import/realm-export.json
+      - ./docker/keycloak/realms/realm-export.json:/opt/keycloak/data/import/payguard-realm.json:ro
 
     command:
       - start-dev
@@ -114,6 +118,7 @@ services:
 
     networks:
       - payguard-network
+
 
   tempo:
     image: grafana/tempo:2.8.1

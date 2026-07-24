@@ -17,18 +17,11 @@ import org.springframework.security.web.SecurityFilterChain;
 public class SecurityConfiguration {
 
     private final RealmRoleAuthoritiesConverter realmRoleAuthoritiesConverter;
-
     @Bean
-    public SecurityFilterChain securityFilterChain(
-            HttpSecurity http
-    ) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
-        JwtAuthenticationConverter jwtAuthenticationConverter =
-                new JwtAuthenticationConverter();
-
-        jwtAuthenticationConverter.setJwtGrantedAuthoritiesConverter(
-                realmRoleAuthoritiesConverter
-        );
+        JwtAuthenticationConverter jwtAuthenticationConverter = new JwtAuthenticationConverter();
+        jwtAuthenticationConverter.setJwtGrantedAuthoritiesConverter(realmRoleAuthoritiesConverter);
 
         http
                 .csrf(AbstractHttpConfigurer::disable)
