@@ -23,6 +23,7 @@ public class Merchant {
     private String paymentAccountId;
     private PaymentAccountStatus paymentAccountStatus;
     private String paymentAccountStatusReason;
+    private PaymentAccountRequiredAction paymentAccountRequiredAction;
     private Instant lastPaymentAccountEventAt;
     private boolean cardPaymentsCapabilityActive;
     private boolean transfersCapabilityActive;
@@ -39,6 +40,7 @@ public class Merchant {
             String paymentAccountId,
             PaymentAccountStatus paymentAccountStatus,
             String paymentAccountStatusReason,
+            PaymentAccountRequiredAction paymentAccountRequiredAction,
             Instant lastPaymentAccountEventAt,
             boolean cardPaymentsCapabilityActive,
             boolean transfersCapabilityActive,
@@ -55,6 +57,7 @@ public class Merchant {
         this.paymentAccountId = paymentAccountId;
         this.paymentAccountStatus = paymentAccountStatus;
         this.paymentAccountStatusReason = paymentAccountStatusReason;
+        this.paymentAccountRequiredAction = paymentAccountRequiredAction;
         this.lastPaymentAccountEventAt = lastPaymentAccountEventAt;
         this.cardPaymentsCapabilityActive = cardPaymentsCapabilityActive;
         this.transfersCapabilityActive = transfersCapabilityActive;
@@ -82,6 +85,7 @@ public class Merchant {
                 null,
                 PaymentAccountStatus.PENDING_ONBOARDING,
                 null,
+                PaymentAccountRequiredAction.CONTINUE_ONBOARDING,
                 null,
                 false,
                 false,
@@ -101,6 +105,7 @@ public class Merchant {
             String paymentAccountId,
             @NonNull PaymentAccountStatus paymentAccountStatus,
             String paymentAccountStatusReason,
+            @NonNull PaymentAccountRequiredAction paymentAccountRequiredAction,
             Instant lastPaymentAccountEventAt,
             boolean cardPaymentsCapabilityActive,
             boolean transfersCapabilityActive,
@@ -119,6 +124,7 @@ public class Merchant {
                 paymentAccountId,
                 paymentAccountStatus,
                 paymentAccountStatusReason,
+                paymentAccountRequiredAction,
                 lastPaymentAccountEventAt,
                 cardPaymentsCapabilityActive,
                 transfersCapabilityActive,
@@ -166,7 +172,11 @@ public class Merchant {
     }
 
     public boolean canRequestPaymentAccountOnboardingLink() {
-        return isPending() && hasPaymentAccount();
+
+        return hasPaymentAccount()
+                && !isSuspended()
+                && !paymentAccountStatus.isDisabled()
+                && paymentAccountRequiredAction.requiresOnboarding();
     }
 
     public void linkIdentity(
@@ -201,6 +211,8 @@ public class Merchant {
 
         this.paymentAccountId = paymentAccountId;
         this.paymentAccountStatus = PaymentAccountStatus.PENDING_ONBOARDING;
+        this.paymentAccountRequiredAction =
+                PaymentAccountRequiredAction.CONTINUE_ONBOARDING;
         this.updatedAt = now;
     }
 
@@ -209,6 +221,7 @@ public class Merchant {
             boolean cardPaymentsCapabilityActive,
             boolean transfersCapabilityActive,
             String disabledReason,
+            @NonNull PaymentAccountRequirements requirements,
             Instant eventAt,
             Instant now
     ) {
@@ -223,6 +236,12 @@ public class Merchant {
                 payoutsEnabled,
                 disabledReason
         );
+
+        this.paymentAccountRequiredAction =
+                PaymentAccountRequiredAction.resolve(
+                        paymentAccountStatus,
+                        requirements
+                );
 
         this.paymentAccountStatusReason = disabledReason;
         this.cardPaymentsCapabilityActive = cardPaymentsCapabilityActive;

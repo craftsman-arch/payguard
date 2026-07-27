@@ -3,6 +3,7 @@ package io.payguard.userservice.integration.payment.stripe.webhook;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.payguard.userservice.application.payment.webhook.*;
+import io.payguard.userservice.domain.merchant.PaymentAccountRequirements;
 import io.payguard.userservice.integration.payment.error.exception.StripeEventDeserializationException;
 import io.payguard.userservice.integration.payment.stripe.webhook.dto.StripeAccountWebhookPayload;
 import lombok.RequiredArgsConstructor;
@@ -92,6 +93,12 @@ public class StripeWebhookParser implements PaymentProviderWebhookParser {
                                     .transfers()
                                     .isActive(),
                             account.disabledReason(),
+                            new PaymentAccountRequirements(
+                                    account.requirements().currentlyDue(),
+                                    account.requirements().pastDue(),
+                                    account.requirements().pendingVerification(),
+                                    account.requirements().eventuallyDue()
+                            ),
                             eventCreatedAt
                     )
             );

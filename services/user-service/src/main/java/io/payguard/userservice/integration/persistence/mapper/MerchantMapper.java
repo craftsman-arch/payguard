@@ -19,6 +19,9 @@ public class MerchantMapper {
                 .paymentAccountId(merchant.getPaymentAccountId())
                 .paymentAccountStatus(merchant.getPaymentAccountStatus())
                 .paymentAccountStatusReason(merchant.getPaymentAccountStatusReason())
+                .paymentAccountRequiredAction(
+                        merchant.getPaymentAccountRequiredAction()
+                )
                 .lastPaymentAccountEventAt(merchant.getLastPaymentAccountEventAt())
                 .cardPaymentsCapabilityActive(merchant.isCardPaymentsCapabilityActive())
                 .transfersCapabilityActive(merchant.isTransfersCapabilityActive())
@@ -40,6 +43,7 @@ public class MerchantMapper {
                 entity.getPaymentAccountId(),
                 entity.getPaymentAccountStatus(),
                 entity.getPaymentAccountStatusReason(),
+                entity.getPaymentAccountRequiredAction(),
                 entity.getLastPaymentAccountEventAt(),
                 entity.isCardPaymentsCapabilityActive(),
                 entity.isTransfersCapabilityActive(),

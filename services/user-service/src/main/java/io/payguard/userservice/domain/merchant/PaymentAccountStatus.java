@@ -10,4 +10,8 @@ public enum PaymentAccountStatus {
     public boolean isActive() {
         return this == ACTIVE;
     }
+
+    public boolean isDisabled() {
+        return this == DISABLED;
+    }
 }

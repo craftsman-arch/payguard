@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import java.util.List;
 import java.util.Locale;
 
 import static java.util.Optional.ofNullable;
@@ -63,11 +64,46 @@ public record StripeAccountWebhookPayload(
     public record Requirements(
 
             @JsonProperty("disabled_reason")
-            String disabledReason
+            String disabledReason,
+
+            @JsonProperty("currently_due")
+            List<String> currentlyDue,
+
+            @JsonProperty("past_due")
+            List<String> pastDue,
+
+            @JsonProperty("pending_verification")
+            List<String> pendingVerification,
+
+            @JsonProperty("eventually_due")
+            List<String> eventuallyDue
     ) {
 
+        public Requirements {
+
+            currentlyDue = immutableCopy(currentlyDue);
+            pastDue = immutableCopy(pastDue);
+            pendingVerification = immutableCopy(pendingVerification);
+            eventuallyDue = immutableCopy(eventuallyDue);
+        }
+
         public static Requirements empty() {
-            return new Requirements(null);
+
+            return new Requirements(
+                    null,
+                    List.of(),
+                    List.of(),
+                    List.of(),
+                    List.of()
+            );
+        }
+
+        private static List<String> immutableCopy(List<String> values) {
+
+            return List.copyOf(
+                    ofNullable(values)
+                            .orElseGet(List::of)
+            );
         }
     }
 
