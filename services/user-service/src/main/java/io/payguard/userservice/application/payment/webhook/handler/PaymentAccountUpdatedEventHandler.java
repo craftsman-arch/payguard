@@ -58,6 +58,7 @@ public class PaymentAccountUpdatedEventHandler implements PaymentProviderWebhook
                 account.cardPaymentsCapabilityActive(),
                 account.transfersCapabilityActive(),
                 account.disabledReason(),
+                account.requirements(),
                 account.eventAt(),
                 now
         );

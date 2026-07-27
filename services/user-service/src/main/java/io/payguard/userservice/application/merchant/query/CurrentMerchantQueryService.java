@@ -36,6 +36,7 @@ public class CurrentMerchantQueryService {
                 merchant.getStatus(),
                 merchant.getPaymentAccountStatus(),
                 merchant.getPaymentAccountStatusReason(),
+                merchant.getPaymentAccountRequiredAction(),
                 merchant.isReadyForPayments(),
                 merchant.getCreatedAt(),
                 merchant.getUpdatedAt()

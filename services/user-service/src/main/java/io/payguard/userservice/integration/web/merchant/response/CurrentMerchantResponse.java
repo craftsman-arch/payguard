@@ -2,6 +2,7 @@ package io.payguard.userservice.integration.web.merchant.response;
 
 import io.payguard.userservice.domain.merchant.BusinessType;
 import io.payguard.userservice.domain.merchant.MerchantStatus;
+import io.payguard.userservice.domain.merchant.PaymentAccountRequiredAction;
 import io.payguard.userservice.domain.merchant.PaymentAccountStatus;
 import io.swagger.v3.oas.annotations.media.Schema;
 
@@ -54,9 +55,16 @@ public record CurrentMerchantResponse(
         PaymentAccountStatus paymentAccountStatus,
 
         @Schema(
-                description = "Payment-provider reason when the account is disabled."
+                description = "Provider reason associated with the current payment-account restriction.",
+                example = "requirements.past_due"
         )
         String paymentAccountStatusReason,
+
+        @Schema(
+                description = "Action currently required to progress the merchant payment account.",
+                example = "CONTINUE_ONBOARDING"
+        )
+        PaymentAccountRequiredAction paymentAccountRequiredAction,
 
         @Schema(
                 description = "Whether this merchant may currently accept marketplace payments."
