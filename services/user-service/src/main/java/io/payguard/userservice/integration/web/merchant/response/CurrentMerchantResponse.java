@@ -2,13 +2,14 @@ package io.payguard.userservice.integration.web.merchant.response;
 
 import io.payguard.userservice.domain.merchant.BusinessType;
 import io.payguard.userservice.domain.merchant.MerchantStatus;
+import io.payguard.userservice.domain.merchant.PaymentAccountStatus;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.time.Instant;
 import java.util.UUID;
 
 @Schema(description = "Current merchant profile.")
-public record GetCurrentMerchantResponse(
+public record CurrentMerchantResponse(
 
         @Schema(
                 description = "Unique merchant identifier.",
@@ -45,6 +46,22 @@ public record GetCurrentMerchantResponse(
                 example = "ACTIVE"
         )
         MerchantStatus status,
+
+        @Schema(
+                description = "Stripe Connect payment-account readiness state.",
+                example = "ACTIVE"
+        )
+        PaymentAccountStatus paymentAccountStatus,
+
+        @Schema(
+                description = "Payment-provider reason when the account is disabled."
+        )
+        String paymentAccountStatusReason,
+
+        @Schema(
+                description = "Whether this merchant may currently accept marketplace payments."
+        )
+        boolean isReadyForPayments,
 
         @Schema(
                 description = "Merchant creation timestamp.",

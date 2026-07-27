@@ -3,6 +3,7 @@ package io.payguard.apigateway.security;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.config.annotation.method.configuration.EnableReactiveMethodSecurity;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
@@ -36,6 +37,12 @@ public class SecurityConfiguration {
                                 "/auth/**",
                                 "/actuator/**",
                                 "/api/merchants"
+                        )
+                        .permitAll()
+
+                        .pathMatchers(
+                                HttpMethod.POST,
+                                "/api/webhooks/stripe"
                         )
                         .permitAll()
 

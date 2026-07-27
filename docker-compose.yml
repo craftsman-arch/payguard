@@ -19,7 +19,7 @@ services:
       - ./docker/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
 
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U payguard" ]
+      test: [ "CMD", "pg_isready", "-U", "payguard", "-d", "postgres" ]
       interval: 10s
       timeout: 5s
       retries: 5

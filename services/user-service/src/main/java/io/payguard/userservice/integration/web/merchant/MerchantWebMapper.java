@@ -1,12 +1,12 @@
 package io.payguard.userservice.integration.web.merchant;
 
-import io.payguard.userservice.application.merchant.query.GetCurrentMerchantResult;
+import io.payguard.userservice.application.merchant.query.CurrentMerchantResult;
 import io.payguard.userservice.application.merchant.register.RegisterMerchantCommand;
 import io.payguard.userservice.application.merchant.register.RegisterMerchantResult;
 import io.payguard.userservice.domain.merchant.value.Country;
 import io.payguard.userservice.domain.merchant.value.Email;
 import io.payguard.userservice.integration.web.merchant.request.RegisterMerchantRequest;
-import io.payguard.userservice.integration.web.merchant.response.GetCurrentMerchantResponse;
+import io.payguard.userservice.integration.web.merchant.response.CurrentMerchantResponse;
 import io.payguard.userservice.integration.web.merchant.response.RegisterMerchantResponse;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -29,6 +29,6 @@ public interface MerchantWebMapper {
 
     RegisterMerchantResponse toResponse(RegisterMerchantResult result);
 
-    GetCurrentMerchantResponse toResponse(GetCurrentMerchantResult result);
+    CurrentMerchantResponse toResponse(CurrentMerchantResult result);
 
 }

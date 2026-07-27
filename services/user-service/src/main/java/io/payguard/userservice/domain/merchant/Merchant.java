@@ -21,7 +21,11 @@ public class Merchant {
     private MerchantStatus status;
     private String identityUserId;
     private String paymentAccountId;
-
+    private PaymentAccountStatus paymentAccountStatus;
+    private String paymentAccountStatusReason;
+    private Instant lastPaymentAccountEventAt;
+    private boolean cardPaymentsCapabilityActive;
+    private boolean transfersCapabilityActive;
     private final Instant createdAt;
     private Instant updatedAt;
 
@@ -33,6 +37,11 @@ public class Merchant {
             Country country,
             String identityUserId,
             String paymentAccountId,
+            PaymentAccountStatus paymentAccountStatus,
+            String paymentAccountStatusReason,
+            Instant lastPaymentAccountEventAt,
+            boolean cardPaymentsCapabilityActive,
+            boolean transfersCapabilityActive,
             MerchantStatus status,
             Instant createdAt,
             Instant updatedAt
@@ -44,6 +53,11 @@ public class Merchant {
         this.country = country;
         this.identityUserId = identityUserId;
         this.paymentAccountId = paymentAccountId;
+        this.paymentAccountStatus = paymentAccountStatus;
+        this.paymentAccountStatusReason = paymentAccountStatusReason;
+        this.lastPaymentAccountEventAt = lastPaymentAccountEventAt;
+        this.cardPaymentsCapabilityActive = cardPaymentsCapabilityActive;
+        this.transfersCapabilityActive = transfersCapabilityActive;
         this.status = status;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
@@ -66,6 +80,11 @@ public class Merchant {
                 country,
                 null,
                 null,
+                PaymentAccountStatus.PENDING_ONBOARDING,
+                null,
+                null,
+                false,
+                false,
                 MerchantStatus.PENDING,
                 now,
                 now
@@ -80,6 +99,11 @@ public class Merchant {
             @NonNull Country country,
             String identityUserId,
             String paymentAccountId,
+            @NonNull PaymentAccountStatus paymentAccountStatus,
+            String paymentAccountStatusReason,
+            Instant lastPaymentAccountEventAt,
+            boolean cardPaymentsCapabilityActive,
+            boolean transfersCapabilityActive,
             @NonNull MerchantStatus status,
             @NonNull Instant createdAt,
             @NonNull Instant updatedAt
@@ -93,6 +117,11 @@ public class Merchant {
                 country,
                 identityUserId,
                 paymentAccountId,
+                paymentAccountStatus,
+                paymentAccountStatusReason,
+                lastPaymentAccountEventAt,
+                cardPaymentsCapabilityActive,
+                transfersCapabilityActive,
                 status,
                 createdAt,
                 updatedAt
@@ -127,6 +156,19 @@ public class Merchant {
         return isPending() && !hasPaymentAccount();
     }
 
+    public boolean isReadyForPayments() {
+        return isActive() && paymentAccountStatus.isActive();
+    }
+
+    public boolean isEligibleForDestinationCharges() {
+        return isReadyForPayments()
+                && transfersCapabilityActive;
+    }
+
+    public boolean canRequestPaymentAccountOnboardingLink() {
+        return isPending() && hasPaymentAccount();
+    }
+
     public void linkIdentity(
             String identityUserId,
             Instant now
@@ -158,12 +200,58 @@ public class Merchant {
         }
 
         this.paymentAccountId = paymentAccountId;
+        this.paymentAccountStatus = PaymentAccountStatus.PENDING_ONBOARDING;
         this.updatedAt = now;
     }
 
-    public void activate(
+    public boolean recordPaymentAccountUpdate(
+            boolean payoutsEnabled,
+            boolean cardPaymentsCapabilityActive,
+            boolean transfersCapabilityActive,
+            String disabledReason,
+            Instant eventAt,
             Instant now
     ) {
+
+        if (lastPaymentAccountEventAt != null
+                && eventAt.isBefore(lastPaymentAccountEventAt)) {
+
+            return false;
+        }
+
+        this.paymentAccountStatus = resolvePaymentAccountStatus(
+                payoutsEnabled,
+                disabledReason
+        );
+
+        this.paymentAccountStatusReason = disabledReason;
+        this.cardPaymentsCapabilityActive = cardPaymentsCapabilityActive;
+        this.transfersCapabilityActive = transfersCapabilityActive;
+        this.lastPaymentAccountEventAt = eventAt;
+        this.updatedAt = now;
+
+        return true;
+    }
+
+    private PaymentAccountStatus resolvePaymentAccountStatus(
+            boolean payoutsEnabled,
+            String disabledReason
+    ) {
+
+        if (!hasPaymentAccountRestriction(disabledReason) && payoutsEnabled) {
+            return PaymentAccountStatus.ACTIVE;
+        }
+
+        return isPending()
+                ? PaymentAccountStatus.PENDING_ONBOARDING
+                : PaymentAccountStatus.RESTRICTED;
+    }
+
+    private boolean hasPaymentAccountRestriction(String reason) {
+        return reason != null && !reason.isBlank();
+    }
+
+    public void activate(Instant now) {
 
         if (isActive()) {
             throw new MerchantAlreadyActivatedException();
@@ -185,9 +273,7 @@ public class Merchant {
         this.updatedAt = now;
     }
 
-    public void suspend(
-            Instant now
-    ) {
+    public void suspend(Instant now) {
 
         if (!isActive()) {
             throw new MerchantMustBeActiveException();

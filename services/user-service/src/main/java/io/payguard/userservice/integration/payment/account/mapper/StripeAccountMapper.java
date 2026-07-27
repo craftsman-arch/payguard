@@ -7,6 +7,8 @@ import io.payguard.userservice.integration.payment.config.StripeProperties;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
+import java.util.Locale;
+
 @Component
 @RequiredArgsConstructor
 public class StripeAccountMapper {
@@ -18,7 +20,10 @@ public class StripeAccountMapper {
         return new StripeAccountRequest(
                 "express",
                 merchant.getCountry().getValue(),
-                merchant.getEmail().getValue()
+                merchant.getEmail().getValue(),
+                merchant.getBusinessType()
+                        .name()
+                        .toLowerCase(Locale.ROOT)
         );
     }
 

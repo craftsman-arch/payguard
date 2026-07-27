@@ -1,12 +1,14 @@
 package io.payguard.userservice.integration.web.merchant;
 
-import io.payguard.userservice.application.merchant.query.GetCurrentMerchantQuery;
-import io.payguard.userservice.application.merchant.query.GetCurrentMerchantService;
+import io.payguard.userservice.application.merchant.payment.MerchantOnboardingLinkService;
+import io.payguard.userservice.application.merchant.query.CurrentMerchantQuery;
+import io.payguard.userservice.application.merchant.query.CurrentMerchantQueryService;
 import io.payguard.userservice.application.merchant.register.RegisterMerchantService;
 import io.payguard.userservice.integration.web.common.ErrorResponse;
 import io.payguard.userservice.integration.web.common.ValidationErrorResponse;
 import io.payguard.userservice.integration.web.merchant.request.RegisterMerchantRequest;
-import io.payguard.userservice.integration.web.merchant.response.GetCurrentMerchantResponse;
+import io.payguard.userservice.integration.web.merchant.response.CurrentMerchantResponse;
+import io.payguard.userservice.integration.web.merchant.response.MerchantOnboardingLinkResponse;
 import io.payguard.userservice.integration.web.merchant.response.RegisterMerchantResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -30,7 +32,8 @@ import org.springframework.web.bind.annotation.*;
 public class MerchantController {
 
     private final RegisterMerchantService registerMerchantService;
-    private final GetCurrentMerchantService getCurrentMerchantService;
+    private final CurrentMerchantQueryService currentMerchantQueryService;
+    private final MerchantOnboardingLinkService merchantOnboardingLinkService;
     private final MerchantWebMapper mapper;
 
     @Operation(
@@ -109,7 +112,7 @@ public class MerchantController {
                     content = @Content(
                             mediaType = "application/json",
                             schema = @Schema(
-                                    implementation = GetCurrentMerchantResponse.class
+                                    implementation = CurrentMerchantResponse.class
                             )
                     )
             ),
@@ -147,13 +150,88 @@ public class MerchantController {
     @GetMapping("/me")
     @PreAuthorize("hasRole('MERCHANT')")
     @ResponseStatus(HttpStatus.OK)
-    public GetCurrentMerchantResponse currentMerchant() {
+    public CurrentMerchantResponse currentMerchant() {
 
         return mapper.toResponse(
-                getCurrentMerchantService.execute(
-                        new GetCurrentMerchantQuery()
+                currentMerchantQueryService.execute(
+                        new CurrentMerchantQuery()
                 )
         );
     }
 
+    @Operation(
+            summary = "Create payment-account onboarding link",
+            description = """
+                    Creates a new Stripe Account Link for the authenticated
+                    merchant's existing Connected Account. This endpoint never
+                    creates a second Connected Account.
+                    """
+    )
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Stripe onboarding link created successfully.",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(
+                                    implementation = MerchantOnboardingLinkResponse.class
+                            )
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "400",
+                    description = "Merchant is not eligible for payment-account re-onboarding.",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = ErrorResponse.class)
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "401",
+                    description = "Authentication is missing or invalid."
+            ),
+            @ApiResponse(
+                    responseCode = "403",
+                    description = "Authenticated user does not have the MERCHANT role.",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = ErrorResponse.class)
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "404",
+                    description = "Merchant not found.",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = ErrorResponse.class)
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "422",
+                    description = "Payment provider rejected the onboarding-link request.",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = ErrorResponse.class)
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "503",
+                    description = "Payment provider is temporarily unavailable.",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = ErrorResponse.class)
+                    )
+            )
+    })
+    @PostMapping("/me/payment-account/onboarding-link")
+    @PreAuthorize("hasRole('MERCHANT')")
+    @ResponseStatus(HttpStatus.OK)
+    public MerchantOnboardingLinkResponse createOnboardingLink() {
+
+        return new MerchantOnboardingLinkResponse(
+                merchantOnboardingLinkService
+                        .execute()
+                        .onboardingUrl()
+        );
+    }
 }

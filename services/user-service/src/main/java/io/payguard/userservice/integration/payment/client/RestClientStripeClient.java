@@ -10,6 +10,8 @@ import io.payguard.userservice.integration.payment.error.dto.StripeError;
 import io.payguard.userservice.integration.payment.error.dto.StripeErrorResponse;
 import io.payguard.userservice.integration.payment.error.exception.StripeAccountCreationException;
 import io.payguard.userservice.integration.payment.error.exception.StripeAccountDeletionException;
+import io.payguard.userservice.integration.payment.error.exception.StripeProviderRejectedException;
+import io.payguard.userservice.integration.payment.error.exception.StripeProviderUnavailableException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
@@ -69,15 +71,15 @@ public class RestClientStripeClient implements StripeClient {
 
         } catch (HttpClientErrorException ex) {
 
-            throw new StripeAccountCreationException(
+            throw new StripeProviderRejectedException(
                     extractErrorMessage(ex),
                     ex
             );
 
         } catch (RestClientException ex) {
 
-            throw new StripeAccountCreationException(
-                    "Failed to create Stripe account.",
+            throw new StripeProviderUnavailableException(
+                    "Stripe is unavailable while creating an account.",
                     ex
             );
         }
@@ -120,10 +122,17 @@ public class RestClientStripeClient implements StripeClient {
 
             return response.url();
 
+        } catch (HttpClientErrorException ex) {
+
+            throw new StripeProviderRejectedException(
+                    extractErrorMessage(ex),
+                    ex
+            );
+
         } catch (RestClientException ex) {
 
-            throw new StripeAccountCreationException(
-                    "Failed to create Stripe onboarding link.",
+            throw new StripeProviderUnavailableException(
+                    "Stripe is unavailable while creating an onboarding link.",
                     ex
             );
         }
@@ -169,6 +178,7 @@ public class RestClientStripeClient implements StripeClient {
         form.add("type", request.type());
         form.add("country", request.country());
         form.add("email", request.email());
+        form.add("business_type", request.businessType());
         form.add("capabilities[transfers][requested]", "true");
 
         return form;

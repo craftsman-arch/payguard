@@ -37,8 +37,8 @@ stripe:
   secret-key: ${STRIPE_SECRET_KEY}
   webhook-secret: ${STRIPE_WEBHOOK_SECRET}
 
-  refresh-url: ${STRIPE_REFRESH_URL:http://localhost:3000/onboarding/retry}
-  return-url: ${STRIPE_RETURN_URL:http://localhost:3000/onboarding/success}
+  refresh-url: ${STRIPE_REFRESH_URL:http://localhost:5173/onboarding/retry}
+  return-url: ${STRIPE_RETURN_URL:http://localhost:5173/onboarding/success}
 
 springdoc:
   api-docs:

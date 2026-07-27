@@ -17,6 +17,11 @@ public class MerchantMapper {
                 .country(merchant.getCountry())
                 .identityUserId(merchant.getIdentityUserId())
                 .paymentAccountId(merchant.getPaymentAccountId())
+                .paymentAccountStatus(merchant.getPaymentAccountStatus())
+                .paymentAccountStatusReason(merchant.getPaymentAccountStatusReason())
+                .lastPaymentAccountEventAt(merchant.getLastPaymentAccountEventAt())
+                .cardPaymentsCapabilityActive(merchant.isCardPaymentsCapabilityActive())
+                .transfersCapabilityActive(merchant.isTransfersCapabilityActive())
                 .status(merchant.getStatus())
                 .createdAt(merchant.getCreatedAt())
                 .updatedAt(merchant.getUpdatedAt())
@@ -33,6 +38,11 @@ public class MerchantMapper {
                 entity.getCountry(),
                 entity.getIdentityUserId(),
                 entity.getPaymentAccountId(),
+                entity.getPaymentAccountStatus(),
+                entity.getPaymentAccountStatusReason(),
+                entity.getLastPaymentAccountEventAt(),
+                entity.isCardPaymentsCapabilityActive(),
+                entity.isTransfersCapabilityActive(),
                 entity.getStatus(),
                 entity.getCreatedAt(),
                 entity.getUpdatedAt()
