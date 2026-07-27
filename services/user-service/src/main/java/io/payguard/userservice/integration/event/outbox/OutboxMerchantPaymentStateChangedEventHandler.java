@@ -50,8 +50,7 @@ public class OutboxMerchantPaymentStateChangedEventHandler
                         envelope.type(),
                         eventBody,
                         envelope.time(),
-                        envelope.correlationId(),
-                        envelope.time()
+                        envelope.correlationId()
                 );
 
         outboxEventRepository.add(outboxEvent);
