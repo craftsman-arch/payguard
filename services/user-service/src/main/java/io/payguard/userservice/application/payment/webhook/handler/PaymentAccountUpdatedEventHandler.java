@@ -1,11 +1,13 @@
 package io.payguard.userservice.application.payment.webhook.handler;
 
+import io.payguard.userservice.application.event.DomainEventDispatcher;
 import io.payguard.userservice.application.payment.webhook.PaymentAccountUpdated;
 import io.payguard.userservice.application.payment.webhook.PaymentProviderEventType;
 import io.payguard.userservice.application.payment.webhook.PaymentProviderWebhookHandler;
 import io.payguard.userservice.application.time.TimeProvider;
 import io.payguard.userservice.domain.merchant.Merchant;
 import io.payguard.userservice.domain.merchant.MerchantRepository;
+import io.payguard.userservice.domain.merchant.PaymentAccountUpdateResult;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -21,6 +23,7 @@ public class PaymentAccountUpdatedEventHandler implements PaymentProviderWebhook
 
     private final MerchantRepository merchantRepository;
     private final TimeProvider timeProvider;
+    private final DomainEventDispatcher domainEventDispatcher;
 
     @Override
     public PaymentProviderEventType supports() {
@@ -53,17 +56,18 @@ public class PaymentAccountUpdatedEventHandler implements PaymentProviderWebhook
 
         Instant now = timeProvider.now();
 
-        boolean applied = merchant.recordPaymentAccountUpdate(
-                account.payoutsEnabled(),
-                account.cardPaymentsCapabilityActive(),
-                account.transfersCapabilityActive(),
-                account.disabledReason(),
-                account.requirements(),
-                account.eventAt(),
-                now
+        PaymentAccountUpdateResult result =
+                merchant.recordPaymentAccountUpdate(
+                    account.payoutsEnabled(),
+                    account.cardPaymentsCapabilityActive(),
+                    account.transfersCapabilityActive(),
+                    account.disabledReason(),
+                    account.requirements(),
+                    account.eventAt(),
+                    now
         );
 
-        if (!applied) {
+        if (!result.wasApplied()) {
             log.debug(
                     "Ignoring stale payment account update for merchant [{}].",
                     merchant.getId()
@@ -72,18 +76,14 @@ public class PaymentAccountUpdatedEventHandler implements PaymentProviderWebhook
             return;
         }
 
-        if (merchant.getPaymentAccountStatus().isActive() && merchant.isPending()) {
-
-            merchant.activate(now);
-        }
-
         merchantRepository.update(merchant);
+        domainEventDispatcher.dispatch(result.domainEvents());
 
-        log.info(
-                "Recorded payment account [{}] status [{}] for merchant [{}].",
+        log.debug(
+                "Applied payment account update [{}] for merchant [{}] with [{}] domain event(s).",
                 account.paymentAccountId(),
-                merchant.getPaymentAccountStatus(),
-                merchant.getId()
+                merchant.getId(),
+                result.domainEvents().size()
         );
     }
 }

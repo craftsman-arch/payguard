@@ -55,12 +55,8 @@ public class PaymentProviderWebhookDispatcher {
             return;
         }
 
-        T typedPayload = handler.payloadType().cast(
-                payload
-        );
+        T typedPayload = handler.payloadType().cast(payload);
+        handler.handle(typedPayload);
 
-        handler.handle(
-                typedPayload
-        );
     }
 }

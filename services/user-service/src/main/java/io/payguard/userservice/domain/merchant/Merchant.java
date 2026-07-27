@@ -1,6 +1,7 @@
 package io.payguard.userservice.domain.merchant;
 
 import io.payguard.userservice.domain.merchant.exception.*;
+import io.payguard.userservice.domain.merchant.event.MerchantPaymentStateChanged;
 import io.payguard.userservice.domain.merchant.value.Country;
 import io.payguard.userservice.domain.merchant.value.Email;
 import lombok.Getter;
@@ -171,6 +172,16 @@ public class Merchant {
                 && transfersCapabilityActive;
     }
 
+    public MerchantPaymentState paymentState() {
+
+        return new MerchantPaymentState(
+                paymentAccountStatus,
+                paymentAccountRequiredAction,
+                isReadyForPayments(),
+                isEligibleForDestinationCharges()
+        );
+    }
+
     public boolean canRequestPaymentAccountOnboardingLink() {
 
         return hasPaymentAccount()
@@ -216,7 +227,7 @@ public class Merchant {
         this.updatedAt = now;
     }
 
-    public boolean recordPaymentAccountUpdate(
+    public PaymentAccountUpdateResult recordPaymentAccountUpdate(
             boolean payoutsEnabled,
             boolean cardPaymentsCapabilityActive,
             boolean transfersCapabilityActive,
@@ -229,8 +240,11 @@ public class Merchant {
         if (lastPaymentAccountEventAt != null
                 && eventAt.isBefore(lastPaymentAccountEventAt)) {
 
-            return false;
+            return new PaymentAccountUpdateResult.Stale();
         }
+
+        MerchantPaymentState previousState =
+                paymentState();
 
         this.paymentAccountStatus = resolvePaymentAccountStatus(
                 payoutsEnabled,
@@ -249,7 +263,26 @@ public class Merchant {
         this.lastPaymentAccountEventAt = eventAt;
         this.updatedAt = now;
 
-        return true;
+        if (paymentAccountStatus.isActive() && isPending()) {
+            activate(now);
+        }
+
+        MerchantPaymentState currentState =
+                paymentState();
+
+        if (!currentState.hasChangedSince(previousState)) {
+            return new PaymentAccountUpdateResult
+                    .AppliedWithoutStateChange();
+        }
+
+        return new PaymentAccountUpdateResult.StateChanged(
+                new MerchantPaymentStateChanged(
+                        id,
+                        previousState,
+                        currentState,
+                        now
+                )
+        );
     }
 
     private PaymentAccountStatus resolvePaymentAccountStatus(
