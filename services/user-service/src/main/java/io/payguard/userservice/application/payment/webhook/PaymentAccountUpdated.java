@@ -1,11 +1,12 @@
 package io.payguard.userservice.application.payment.webhook;
 
-public record PaymentAccountUpdated (
+import java.time.Instant;
+
+public record PaymentAccountUpdated(
         String paymentAccountId,
-        boolean chargesEnabled,
-        boolean payoutsEnabled
-) implements PaymentProviderWebhookPayload {
-    public boolean isFullyEnabled() {
-        return chargesEnabled && payoutsEnabled;
-    }
-}
+        boolean payoutsEnabled,
+        boolean cardPaymentsCapabilityActive,
+        boolean transfersCapabilityActive,
+        String disabledReason,
+        Instant eventAt
+) implements PaymentProviderWebhookPayload { }

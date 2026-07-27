@@ -4,6 +4,7 @@ public record StripeAccountRequest(
 
         String type,
         String country,
-        String email
+        String email,
+        String businessType
 ) {
 }

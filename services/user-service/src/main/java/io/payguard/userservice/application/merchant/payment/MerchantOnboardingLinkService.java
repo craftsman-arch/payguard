@@ -1,22 +1,23 @@
-package io.payguard.userservice.application.merchant.query;
+package io.payguard.userservice.application.merchant.payment;
 
 import io.payguard.userservice.application.identity.CurrentUserProvider;
+import io.payguard.userservice.application.payment.PaymentProvider;
 import io.payguard.userservice.domain.merchant.Merchant;
 import io.payguard.userservice.domain.merchant.MerchantRepository;
+import io.payguard.userservice.domain.merchant.exception.MerchantNotEligibleForReonboardingException;
 import io.payguard.userservice.domain.merchant.exception.MerchantNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
-public class GetCurrentMerchantService {
+public class MerchantOnboardingLinkService {
 
     private final MerchantRepository merchantRepository;
     private final CurrentUserProvider currentUserProvider;
+    private final PaymentProvider paymentProvider;
 
-    public GetCurrentMerchantResult execute(
-            GetCurrentMerchantQuery query
-    ) {
+    public MerchantOnboardingLink execute() {
 
         String identityUserId = currentUserProvider.currentUserId();
 
@@ -27,16 +28,13 @@ public class GetCurrentMerchantService {
                                 .formatted(identityUserId)
                 ));
 
-        return new GetCurrentMerchantResult(
-                merchant.getId(),
-                merchant.getEmail().getValue(),
-                merchant.getLegalName(),
-                merchant.getBusinessType(),
-                merchant.getCountry().getValue(),
-                merchant.getStatus(),
-                merchant.getCreatedAt(),
-                merchant.getUpdatedAt()
-        );
-    }
+        if (!merchant.canRequestPaymentAccountOnboardingLink()) {
+            throw new MerchantNotEligibleForReonboardingException();
+        }
 
+        String onboardingUrl =
+                paymentProvider.createMerchantOnboardingLink(merchant);
+
+        return new MerchantOnboardingLink(onboardingUrl);
+    }
 }

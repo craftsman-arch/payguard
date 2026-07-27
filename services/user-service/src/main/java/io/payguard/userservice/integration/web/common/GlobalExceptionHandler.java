@@ -4,6 +4,9 @@ import io.payguard.userservice.application.time.TimeProvider;
 import io.payguard.userservice.domain.merchant.exception.MerchantAlreadyExistsException;
 import io.payguard.userservice.domain.merchant.exception.MerchantException;
 import io.payguard.userservice.domain.merchant.exception.MerchantNotFoundException;
+import io.payguard.userservice.integration.payment.error.exception.StripeProviderRejectedException;
+import io.payguard.userservice.integration.payment.error.exception.StripeProviderUnavailableException;
+import io.payguard.userservice.integration.payment.error.exception.StripeSignatureVerificationException;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -29,6 +32,15 @@ public class GlobalExceptionHandler {
 
     private static final String ACCESS_DENIED_MESSAGE =
             "Access denied.";
+
+    private static final String PAYMENT_PROVIDER_UNAVAILABLE_MESSAGE =
+            "Payment provider is temporarily unavailable.";
+
+    private static final String PAYMENT_PROVIDER_REJECTED_MESSAGE =
+            "Payment provider rejected the request.";
+
+    private static final String INVALID_WEBHOOK_SIGNATURE_MESSAGE =
+            "Invalid webhook signature.";
 
     private final TimeProvider timeProvider;
 
@@ -62,6 +74,66 @@ public class GlobalExceptionHandler {
         return buildErrorResponse(
                 HttpStatus.BAD_REQUEST,
                 exception,
+                request
+        );
+    }
+
+    @ExceptionHandler(StripeProviderUnavailableException.class)
+    public ResponseEntity<ErrorResponse> handleStripeProviderUnavailable(
+            StripeProviderUnavailableException exception,
+            HttpServletRequest request
+    ) {
+
+        log.error(
+                "Stripe is unavailable while processing request [{} {}].",
+                request.getMethod(),
+                request.getRequestURI(),
+                exception
+        );
+
+        return buildErrorResponse(
+                HttpStatus.SERVICE_UNAVAILABLE,
+                PAYMENT_PROVIDER_UNAVAILABLE_MESSAGE,
+                request
+        );
+    }
+
+    @ExceptionHandler(StripeProviderRejectedException.class)
+    public ResponseEntity<ErrorResponse> handleStripeProviderRejected(
+            StripeProviderRejectedException exception,
+            HttpServletRequest request
+    ) {
+
+        log.warn(
+                "Stripe rejected request [{} {}].",
+                request.getMethod(),
+                request.getRequestURI(),
+                exception
+        );
+
+        return buildErrorResponse(
+                HttpStatus.UNPROCESSABLE_ENTITY,
+                PAYMENT_PROVIDER_REJECTED_MESSAGE,
+                request
+        );
+    }
+
+    @ExceptionHandler(StripeSignatureVerificationException.class)
+    public ResponseEntity<ErrorResponse> handleStripeSignatureVerification(
+            StripeSignatureVerificationException exception,
+            HttpServletRequest request
+    ) {
+
+        log.warn(
+                "Rejected Stripe webhook with an invalid signature [{} {}]: {}",
+                request.getMethod(),
+                request.getRequestURI(),
+                exception.getMessage()
+        );
+
+        return buildErrorResponse(
+                HttpStatus.BAD_REQUEST,
+                INVALID_WEBHOOK_SIGNATURE_MESSAGE,
                 request
         );
     }

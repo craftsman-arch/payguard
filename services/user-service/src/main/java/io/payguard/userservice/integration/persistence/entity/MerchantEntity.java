@@ -2,6 +2,7 @@ package io.payguard.userservice.integration.persistence.entity;
 
 import io.payguard.userservice.domain.merchant.BusinessType;
 import io.payguard.userservice.domain.merchant.MerchantStatus;
+import io.payguard.userservice.domain.merchant.PaymentAccountStatus;
 import io.payguard.userservice.domain.merchant.value.Country;
 import io.payguard.userservice.domain.merchant.value.Email;
 import jakarta.persistence.*;
@@ -41,6 +42,22 @@ public class MerchantEntity {
 
     @Column(unique = true)
     private String paymentAccountId;
+
+    @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
+    private PaymentAccountStatus paymentAccountStatus;
+
+    @Column(length = 255)
+    private String paymentAccountStatusReason;
+
+    @Column
+    private Instant lastPaymentAccountEventAt;
+
+    @Column(nullable = false)
+    private boolean cardPaymentsCapabilityActive;
+
+    @Column(nullable = false)
+    private boolean transfersCapabilityActive;
 
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)

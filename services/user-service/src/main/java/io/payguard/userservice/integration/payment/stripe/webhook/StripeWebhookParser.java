@@ -4,16 +4,17 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.payguard.userservice.application.payment.webhook.*;
 import io.payguard.userservice.integration.payment.error.exception.StripeEventDeserializationException;
-import io.payguard.userservice.integration.payment.stripe.webhook.dto.StripeAccountDto;
+import io.payguard.userservice.integration.payment.stripe.webhook.dto.StripeAccountWebhookPayload;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
+
+import java.time.Instant;
 
 @Component
 @RequiredArgsConstructor
 public class StripeWebhookParser implements PaymentProviderWebhookParser {
 
     private static final String ACCOUNT_UPDATED_EVENT = "account.updated";
-
     private final ObjectMapper objectMapper;
 
     @Override
@@ -25,12 +26,14 @@ public class StripeWebhookParser implements PaymentProviderWebhookParser {
 
             String eventId = requiredText(event, "id");
             String eventType = requiredText(event, "type");
+            Instant eventCreatedAt = Instant.ofEpochSecond(requiredLong(event, "created"));
 
             return switch (eventType) {
 
                 case ACCOUNT_UPDATED_EVENT -> parseAccountUpdated(
                         eventId,
-                        event
+                        event,
+                        eventCreatedAt
                 );
 
                 default -> new PaymentProviderWebhook(
@@ -51,7 +54,11 @@ public class StripeWebhookParser implements PaymentProviderWebhookParser {
         }
     }
 
-    private PaymentProviderWebhook parseAccountUpdated(String eventId, JsonNode event) {
+    private PaymentProviderWebhook parseAccountUpdated(
+            String eventId,
+            JsonNode event,
+            Instant eventCreatedAt
+    ) {
 
         JsonNode accountNode = event.path("data").path("object");
 
@@ -63,7 +70,8 @@ public class StripeWebhookParser implements PaymentProviderWebhookParser {
 
         try {
 
-            StripeAccountDto account = objectMapper.treeToValue(accountNode, StripeAccountDto.class);
+            StripeAccountWebhookPayload account = objectMapper.treeToValue(
+                    accountNode, StripeAccountWebhookPayload.class);
 
             if (account.id() == null || account.id().isBlank()) {
                 throw deserializationError(
@@ -76,8 +84,15 @@ public class StripeWebhookParser implements PaymentProviderWebhookParser {
                     PaymentProviderEventType.ACCOUNT_UPDATED,
                     new PaymentAccountUpdated(
                             account.id(),
-                            account.chargesEnabled(),
-                            account.payoutsEnabled()
+                            account.payoutsEnabled(),
+                            account.capabilities()
+                                    .cardPayments()
+                                    .isActive(),
+                            account.capabilities()
+                                    .transfers()
+                                    .isActive(),
+                            account.disabledReason(),
+                            eventCreatedAt
                     )
             );
 
@@ -90,6 +105,20 @@ public class StripeWebhookParser implements PaymentProviderWebhookParser {
                     ex
             );
         }
+    }
+
+    private long requiredLong(JsonNode node, String fieldName) {
+
+        JsonNode value = node.get(fieldName);
+
+        if (value == null || !value.isIntegralNumber()) {
+            throw deserializationError(
+                    "Stripe webhook event does not contain numeric [%s]."
+                            .formatted(fieldName)
+            );
+        }
+
+        return value.asLong();
     }
 
     private String requiredText(JsonNode node, String fieldName) {

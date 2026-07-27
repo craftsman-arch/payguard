@@ -11,6 +11,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Instant;
+
 @Slf4j
 @Component
 @Transactional
@@ -34,16 +36,12 @@ public class PaymentAccountUpdatedEventHandler implements PaymentProviderWebhook
     public void handle(PaymentAccountUpdated account) {
 
         merchantRepository
-                .findByPaymentAccountId(
-                        account.paymentAccountId()
-                )
+                .findByPaymentAccountId(account.paymentAccountId())
                 .ifPresentOrElse(
-
-                        merchant -> activateMerchant(
+                        merchant -> updateMerchantPaymentReadiness(
                                 merchant,
                                 account
                         ),
-
                         () -> log.warn(
                                 "Ignoring payment account update for unknown payment account [{}].",
                                 account.paymentAccountId()
@@ -51,53 +49,40 @@ public class PaymentAccountUpdatedEventHandler implements PaymentProviderWebhook
                 );
     }
 
-    private void activateMerchant(
-            Merchant merchant,
-            PaymentAccountUpdated account
-    ) {
+    private void updateMerchantPaymentReadiness(Merchant merchant, PaymentAccountUpdated account) {
 
-        if (!account.isFullyEnabled()) {
+        Instant now = timeProvider.now();
 
+        boolean applied = merchant.recordPaymentAccountUpdate(
+                account.payoutsEnabled(),
+                account.cardPaymentsCapabilityActive(),
+                account.transfersCapabilityActive(),
+                account.disabledReason(),
+                account.eventAt(),
+                now
+        );
+
+        if (!applied) {
             log.debug(
-                    "Payment account [{}] is not fully enabled yet. chargesEnabled={}, payoutsEnabled={}",
-                    account.paymentAccountId(),
-                    account.chargesEnabled(),
-                    account.payoutsEnabled()
+                    "Ignoring stale payment account update for merchant [{}].",
+                    merchant.getId()
             );
 
             return;
         }
 
-        /*
-         * Only a PENDING merchant may be activated.
-         *
-         * This makes duplicate webhook deliveries harmless and prevents
-         * an account.updated event from causing an error for a SUSPENDED
-         * merchant.
-         */
-        if (!merchant.isPending()) {
+        if (merchant.getPaymentAccountStatus().isActive() && merchant.isPending()) {
 
-            log.debug(
-                    "Ignoring payment account update for merchant [{}] in status [{}].",
-                    merchant.getId(),
-                    merchant.getStatus()
-            );
-
-            return;
+            merchant.activate(now);
         }
 
-        merchant.activate(
-                timeProvider.now()
-        );
-
-        merchantRepository.update(
-                merchant
-        );
+        merchantRepository.update(merchant);
 
         log.info(
-                "Merchant [{}] activated after payment account [{}] became fully enabled.",
-                merchant.getId(),
-                account.paymentAccountId()
+                "Recorded payment account [{}] status [{}] for merchant [{}].",
+                account.paymentAccountId(),
+                merchant.getPaymentAccountStatus(),
+                merchant.getId()
         );
     }
 }
