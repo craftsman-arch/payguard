@@ -18,6 +18,19 @@ spring:
   flyway:
     enabled: true
 
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    producer:
+      acks: all
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+      properties:
+        enable.idempotence: true
+        max.in.flight.requests.per.connection: 5
+        delivery.timeout.ms: 10000
+        request.timeout.ms: 5000
+        max.block.ms: 5000
+
   security:
     oauth2:
       resourceserver:
@@ -39,6 +52,20 @@ stripe:
 
   refresh-url: ${STRIPE_REFRESH_URL:http://localhost:5173/onboarding/retry}
   return-url: ${STRIPE_RETURN_URL:http://localhost:5173/onboarding/success}
+
+outbox:
+  publisher:
+    enabled: ${OUTBOX_PUBLISHER_ENABLED:true}
+    topic: ${OUTBOX_MERCHANT_EVENTS_TOPIC:payguard.user-service.merchant-events}
+    topic-partitions: ${OUTBOX_MERCHANT_EVENTS_PARTITIONS:6}
+    topic-replicas: ${OUTBOX_MERCHANT_EVENTS_REPLICAS:1}
+    batch-size: ${OUTBOX_PUBLISHER_BATCH_SIZE:20}
+    poll-interval: ${OUTBOX_PUBLISHER_POLL_INTERVAL:1s}
+    lease-duration: ${OUTBOX_PUBLISHER_LEASE_DURATION:5m}
+    send-timeout: ${OUTBOX_PUBLISHER_SEND_TIMEOUT:10s}
+    base-backoff: ${OUTBOX_PUBLISHER_BASE_BACKOFF:5s}
+    max-backoff: ${OUTBOX_PUBLISHER_MAX_BACKOFF:15m}
+    max-attempts: ${OUTBOX_PUBLISHER_MAX_ATTEMPTS:10}
 
 springdoc:
   api-docs:
