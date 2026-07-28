@@ -14,8 +14,7 @@ public class ProcessPaymentProviderWebhookService {
 
     private final PaymentProviderWebhookVerifier verifier;
     private final PaymentProviderWebhookParser parser;
-    private final PaymentProviderWebhookTransactionProcessor
-            transactionProcessor;
+    private final PaymentProviderWebhookTransactionProcessor transactionProcessor;
     private final RetryTemplate concurrencyRetryTemplate;
 
     public ProcessPaymentProviderWebhookService(
