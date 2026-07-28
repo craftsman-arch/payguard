@@ -1,65 +1,148 @@
-# Application Architecture
+# User Service application architecture
 
-## Overview
+## Responsibility
 
-The User Service follows a layered architecture with a rich domain model and integrates with external systems through application ports.
+User Service owns:
+
+- merchant identity and lifecycle state;
+- Keycloak identity linkage;
+- Stripe Connect account linkage and normalized readiness state;
+- the decision whether a merchant is ready for payments and eligible for
+  destination charges;
+- durable Stripe webhook deduplication;
+- production of merchant lifecycle integration events through a transactional
+  outbox.
+
+Payment Service consumes the protected internal payment context and must not
+trust a merchant or Stripe account ID supplied by an external caller.
+
+## Component view
 
 ```mermaid
 flowchart TB
+    Client["Merchant portal / API client"]
+    Gateway["API Gateway"]
+    Stripe["Stripe Connect"]
+    Keycloak["Keycloak"]
+    Kafka["Kafka"]
+    PaymentService["Payment Service"]
 
-Client["REST Client"]
+    subgraph UserService["User Service"]
+        Web["Web adapters"]
+        Application["Application use cases"]
+        Domain["Merchant aggregate and policies"]
+        Persistence["Persistence adapters"]
+        ProviderAdapters["Keycloak / Stripe adapters"]
+        OutboxPublisher["Outbox publisher"]
+    end
 
-Client --> Controller
+    PostgreSQL[("PostgreSQL")]
 
-Controller --> Application
-
-Application --> Domain
-
-Application --> Repository
-
-Application --> IdentityProvider
-
-Application --> PaymentProvider
-
-Repository --> PostgreSQL[(PostgreSQL)]
-
-IdentityProvider --> Keycloak[Keycloak]
-
-PaymentProvider --> Stripe[Stripe Connect]
+    Client --> Gateway
+    Gateway --> Web
+    Stripe --> Gateway
+    Web --> Application
+    Application --> Domain
+    Application --> Persistence
+    Application --> ProviderAdapters
+    Persistence --> PostgreSQL
+    ProviderAdapters --> Keycloak
+    ProviderAdapters --> Stripe
+    OutboxPublisher --> PostgreSQL
+    OutboxPublisher --> Kafka
+    PaymentService --> Web
 ```
 
 ## Layers
 
-### REST Layer
+### Domain
 
-Responsible for exposing HTTP APIs.
+The domain contains the `Merchant` aggregate, value objects and payment-state
+policies. It has no Spring, JPA, Stripe or Kafka dependencies.
 
-Maps HTTP requests into application commands and queries.
+The aggregate:
 
----
+- normalizes provider state;
+- resolves the required merchant action;
+- calculates payment readiness and destination-charge eligibility;
+- rejects stale provider snapshots;
+- returns explicit update results and domain events.
 
-### Application Layer
+`revision` is an optimistic-concurrency token carried through the detached
+domain model. Business rules do not modify or depend on it.
 
-Coordinates use cases.
+### Application
 
-Responsible for orchestration only.
+The application layer coordinates commands, queries and transaction boundaries.
+Important flows include:
 
-Contains no infrastructure code.
+- merchant registration and onboarding;
+- current-merchant and internal payment-context queries;
+- Stripe webhook verification, parsing, deduplication and dispatch;
+- domain-event dispatch to the transactional outbox.
 
----
+Webhook concurrency retries are orchestrated by a dedicated `RetryTemplate`.
+Each attempt invokes a separate `REQUIRES_NEW` transactional processor.
 
-### Domain Layer
+### Integration
 
-Contains the Merchant aggregate and business rules.
+Integration adapters implement:
 
-No dependency on Spring or infrastructure.
+- JPA persistence for Merchant;
+- JDBC persistence and claiming for webhook deduplication and outbox delivery;
+- Keycloak Admin API operations;
+- Stripe Connect API operations and webhook signature verification;
+- Kafka publication;
+- REST controllers and security mapping.
 
----
+`MerchantEntity.revision` uses JPA `@Version`. Hibernate delegates the atomic
+compare-and-set to PostgreSQL.
 
-### Infrastructure Layer
+## Transaction boundaries
 
-Implements adapters for
+### Merchant registration
 
-- PostgreSQL
-- Stripe
-- Keycloak
+The local Merchant registration transaction commits before external onboarding
+orchestration. Keycloak and Stripe resources are then provisioned, linked to the
+Merchant and saved with optimistic concurrency.
+
+This flow currently uses best-effort compensation for external resources.
+Durable onboarding reconciliation belongs to the reliability scope.
+
+### Stripe webhook
+
+One local transaction contains:
+
+```text
+processed Stripe event claim
+→ Merchant load and domain update
+→ revision-checked Merchant persistence
+→ outbox insert for each domain event
+→ commit
+```
+
+Any failure rolls back all four effects. An optimistic conflict retries the
+complete transaction after reloading Merchant state.
+
+### Outbox publication
+
+Kafka I/O is deliberately outside the database transaction:
+
+```text
+short transaction: claim bounded batch
+→ Kafka send and acknowledgement
+→ short transaction: mark published or reschedule
+```
+
+Publication is at least once. Consumers must deduplicate by event ID.
+
+## Security boundaries
+
+- Public merchant operations require an authenticated merchant token except for
+  the registration flow defined by current API policy.
+- Only `POST /api/webhooks/stripe` is public at API Gateway; User Service still
+  requires a valid Stripe signature.
+- Internal payment context requires a service token with the correct audience
+  and payment-service scope.
+- Browser SPA authentication uses the Keycloak authorization-code flow with
+  PKCE.
