@@ -74,4 +74,8 @@ public class MerchantEntity {
     @Column(nullable = false)
     private Instant updatedAt;
 
+    @Version
+    @Column(nullable = false)
+    private long revision;
+
 }

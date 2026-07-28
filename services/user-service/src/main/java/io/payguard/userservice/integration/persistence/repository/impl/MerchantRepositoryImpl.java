@@ -2,10 +2,12 @@ package io.payguard.userservice.integration.persistence.repository.impl;
 
 import io.payguard.userservice.domain.merchant.Merchant;
 import io.payguard.userservice.domain.merchant.MerchantRepository;
+import io.payguard.userservice.domain.merchant.exception.ConcurrentMerchantModificationException;
 import io.payguard.userservice.domain.merchant.value.Email;
 import io.payguard.userservice.integration.persistence.mapper.MerchantMapper;
 import io.payguard.userservice.integration.persistence.repository.MerchantJpaRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
@@ -25,7 +27,17 @@ public class MerchantRepositoryImpl implements MerchantRepository {
 
     @Override
     public void update(Merchant merchant) {
-        repository.save(mapper.toEntity(merchant));
+
+        try {
+            repository.saveAndFlush(mapper.toEntity(merchant));
+
+        } catch (ObjectOptimisticLockingFailureException exception) {
+
+            throw new ConcurrentMerchantModificationException(
+                    merchant.getId(),
+                    exception
+            );
+        }
     }
 
     @Override
