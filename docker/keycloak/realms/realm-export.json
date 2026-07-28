@@ -1,6 +1,7 @@
 {
   "realm": "payguard",
   "enabled": true,
+  "verifyEmail": true,
   "accessTokenLifespan": 300,
   "otpPolicyType": "totp",
   "otpPolicyAlgorithm": "HmacSHA1",
@@ -8,6 +9,17 @@
   "otpPolicyPeriod": 30,
   "otpPolicyLookAheadWindow": 1,
   "otpPolicyInitialCounter": 0,
+  "smtpServer": {
+    "host": "mailpit",
+    "port": "1025",
+    "from": "no-reply@payguard.local",
+    "fromDisplayName": "PayGuard",
+    "replyTo": "support@payguard.local",
+    "replyToDisplayName": "PayGuard Support",
+    "auth": "false",
+    "starttls": "false",
+    "ssl": "false"
+  },
   "requiredActions": [
     {
       "alias": "CONFIGURE_TOTP",
@@ -24,6 +36,14 @@
       "enabled": true,
       "defaultAction": false,
       "priority": 30
+    },
+    {
+      "alias": "VERIFY_EMAIL",
+      "name": "Verify Email",
+      "providerId": "VERIFY_EMAIL",
+      "enabled": true,
+      "defaultAction": false,
+      "priority": 50
     }
   ],
   "roles": {
@@ -142,7 +162,7 @@
       "protocol": "openid-connect",
       "publicClient": false,
       "clientAuthenticatorType": "client-secret",
-      "secret": "payguard-secret",
+      "secret": "${KEYCLOAK_CLIENT_SECRET}",
       "serviceAccountsEnabled": true,
       "standardFlowEnabled": false,
       "directAccessGrantsEnabled": false,
