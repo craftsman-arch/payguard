@@ -21,6 +21,7 @@ public interface MerchantWebMapper {
 
         return new RegisterMerchantCommand(
                 email,
+                request.password(),
                 request.legalName(),
                 request.businessType(),
                 country

@@ -2,7 +2,6 @@ package io.payguard.userservice.application.merchant.register;
 
 import io.payguard.userservice.application.identity.IdentityProvider;
 import io.payguard.userservice.application.identity.IdentityRole;
-import io.payguard.userservice.application.password.TemporaryPasswordGenerator;
 import io.payguard.userservice.application.payment.PaymentProvider;
 import io.payguard.userservice.application.time.TimeProvider;
 import io.payguard.userservice.domain.merchant.Merchant;
@@ -21,17 +20,19 @@ public class MerchantOnboardingService {
     private final MerchantRepository merchantRepository;
     private final IdentityProvider identityProvider;
     private final PaymentProvider paymentProvider;
-    private final TemporaryPasswordGenerator passwordGenerator;
     private final TimeProvider timeProvider;
 
-    public MerchantOnboardingResult onboard(Merchant merchant) {
+    public MerchantOnboardingResult onboard(
+            Merchant merchant,
+            String password
+    ) {
 
         String identityUserId = null;
         String paymentAccountId = null;
 
         try {
 
-            identityUserId = provisionIdentity(merchant);
+            identityUserId = provisionIdentity(merchant, password);
             paymentAccountId = provisionPaymentAccount(merchant);
             merchantRepository.update(merchant);
             String onboardingUrl = paymentProvider.createMerchantOnboardingLink(merchant);
@@ -45,14 +46,20 @@ public class MerchantOnboardingService {
         }
     }
 
-    private String provisionIdentity(Merchant merchant) {
+    private String provisionIdentity(
+            Merchant merchant,
+            String password
+    ) {
 
         if (!merchant.canProvisionIdentity()) {
 
             return merchant.getIdentityUserId();
         }
 
-        String identityUserId = identityProvider.createUser(merchant.getEmail(), passwordGenerator.generate());
+        String identityUserId = identityProvider.createUser(
+                merchant.getEmail(),
+                password
+        );
         identityProvider.assignRealmRole(identityUserId, IdentityRole.MERCHANT);
         merchant.linkIdentity(identityUserId, timeProvider.now());
 

@@ -4,7 +4,7 @@ import io.payguard.userservice.domain.merchant.value.Email;
 
 public interface IdentityProvider {
 
-    String createUser(Email email, String temporaryPassword);
+    String createUser(Email email, String password);
 
     void assignRealmRole(String identityUserId, IdentityRole role);
 

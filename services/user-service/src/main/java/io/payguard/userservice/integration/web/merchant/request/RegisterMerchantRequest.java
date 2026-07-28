@@ -6,6 +6,7 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
 
 @Schema(description = "Merchant registration request.")
 public record RegisterMerchantRequest(
@@ -17,6 +18,15 @@ public record RegisterMerchantRequest(
         @Email
         @NotBlank
         String email,
+
+        @Schema(
+                description = "Merchant-selected password.",
+                format = "password",
+                accessMode = Schema.AccessMode.WRITE_ONLY
+        )
+        @NotBlank
+        @Size(max = 128)
+        String password,
 
         @Schema(
                 description = "Merchant legal business name.",
@@ -41,4 +51,16 @@ public record RegisterMerchantRequest(
         String country
 
 ) {
+
+    @Override
+    public String toString() {
+
+        return "RegisterMerchantRequest[" +
+                "email=" + email +
+                ", password=[REDACTED]" +
+                ", legalName=" + legalName +
+                ", businessType=" + businessType +
+                ", country=" + country +
+                ']';
+    }
 }

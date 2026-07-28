@@ -14,7 +14,10 @@ public class RegisterMerchantService {
     public RegisterMerchantResult execute(RegisterMerchantCommand command) {
 
         Merchant merchant = registrationService.register(command);
-        MerchantOnboardingResult onboarding = onboardingService.onboard(merchant);
+        MerchantOnboardingResult onboarding = onboardingService.onboard(
+                merchant,
+                command.password()
+        );
 
         return new RegisterMerchantResult(
                 merchant.getId(),

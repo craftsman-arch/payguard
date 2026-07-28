@@ -6,4 +6,14 @@ public record KeycloakCredential(
         String value,
         boolean temporary
 ) {
+
+    @Override
+    public String toString() {
+
+        return "KeycloakCredential[" +
+                "type=" + type +
+                ", value=[REDACTED]" +
+                ", temporary=" + temporary +
+                ']';
+    }
 }
