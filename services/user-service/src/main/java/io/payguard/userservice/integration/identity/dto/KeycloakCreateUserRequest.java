@@ -8,6 +8,7 @@ public record KeycloakCreateUserRequest(
         String email,
         boolean enabled,
         boolean emailVerified,
-        List<KeycloakCredential> credentials
+        List<KeycloakCredential> credentials,
+        List<String> requiredActions
 ) {
 }

@@ -10,22 +10,29 @@ import java.util.List;
 @Component
 public class KeycloakMapper {
 
+    private static final String VERIFY_EMAIL = "VERIFY_EMAIL";
+    private static final String CONFIGURE_TOTP = "CONFIGURE_TOTP";
+
     public KeycloakCreateUserRequest toCreateUserRequest(
             Email email,
-            String temporaryPassword
+            String password
     ) {
 
         return new KeycloakCreateUserRequest(
                 email.getValue(),
                 email.getValue(),
                 true,
-                true,
+                false,
                 List.of(
                         new KeycloakCredential(
                                 "password",
-                                temporaryPassword,
-                                true
+                                password,
+                                false
                         )
+                ),
+                List.of(
+                        VERIFY_EMAIL,
+                        CONFIGURE_TOTP
                 )
         );
     }

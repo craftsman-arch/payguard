@@ -17,10 +17,13 @@ public class KeycloakIdentityProvider implements IdentityProvider {
     private final KeycloakMapper keycloakMapper;
 
     @Override
-    public String createUser(Email email, String temporaryPassword) {
+    public String createUser(
+            Email email,
+            String password
+    ) {
 
         return keycloakAdminClient.createUser(
-                keycloakMapper.toCreateUserRequest(email, temporaryPassword)
+                keycloakMapper.toCreateUserRequest(email, password)
         );
     }
 
