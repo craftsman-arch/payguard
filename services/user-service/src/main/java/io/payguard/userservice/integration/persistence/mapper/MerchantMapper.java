@@ -28,6 +28,7 @@ public class MerchantMapper {
                 .status(merchant.getStatus())
                 .createdAt(merchant.getCreatedAt())
                 .updatedAt(merchant.getUpdatedAt())
+                .revision(merchant.getRevision())
                 .build();
     }
 
@@ -39,6 +40,7 @@ public class MerchantMapper {
                 entity.getLegalName(),
                 entity.getBusinessType(),
                 entity.getCountry(),
+                entity.getRevision(),
                 entity.getIdentityUserId(),
                 entity.getPaymentAccountId(),
                 entity.getPaymentAccountStatus(),

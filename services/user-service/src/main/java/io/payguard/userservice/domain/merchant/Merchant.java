@@ -18,6 +18,7 @@ public class Merchant {
     private final Country country;
     private final String legalName;
     private final BusinessType businessType;
+    private final long revision;
 
     private MerchantStatus status;
     private String identityUserId;
@@ -37,6 +38,7 @@ public class Merchant {
             String legalName,
             BusinessType businessType,
             Country country,
+            long revision,
             String identityUserId,
             String paymentAccountId,
             PaymentAccountStatus paymentAccountStatus,
@@ -54,6 +56,7 @@ public class Merchant {
         this.legalName = legalName;
         this.businessType = businessType;
         this.country = country;
+        this.revision = revision;
         this.identityUserId = identityUserId;
         this.paymentAccountId = paymentAccountId;
         this.paymentAccountStatus = paymentAccountStatus;
@@ -82,6 +85,7 @@ public class Merchant {
                 legalName,
                 businessType,
                 country,
+                0,
                 null,
                 null,
                 PaymentAccountStatus.PENDING_ONBOARDING,
@@ -102,6 +106,7 @@ public class Merchant {
             @NonNull String legalName,
             @NonNull BusinessType businessType,
             @NonNull Country country,
+            long revision,
             String identityUserId,
             String paymentAccountId,
             @NonNull PaymentAccountStatus paymentAccountStatus,
@@ -121,6 +126,7 @@ public class Merchant {
                 legalName,
                 businessType,
                 country,
+                revision,
                 identityUserId,
                 paymentAccountId,
                 paymentAccountStatus,
@@ -190,10 +196,7 @@ public class Merchant {
                 && paymentAccountRequiredAction.requiresOnboarding();
     }
 
-    public void linkIdentity(
-            String identityUserId,
-            Instant now
-    ) {
+    public void linkIdentity(String identityUserId, Instant now) {
 
         if (!isPending()) {
             throw new MerchantNotReadyForActivationException();
@@ -207,10 +210,7 @@ public class Merchant {
         this.updatedAt = now;
     }
 
-    public void linkPaymentProvider(
-            String paymentAccountId,
-            Instant now
-    ) {
+    public void linkPaymentProvider(String paymentAccountId, Instant now) {
 
         if (!isPending()) {
             throw new MerchantNotReadyForActivationException();

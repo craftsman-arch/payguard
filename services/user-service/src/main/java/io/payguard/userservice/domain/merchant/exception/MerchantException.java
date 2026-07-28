@@ -6,4 +6,8 @@ public abstract class MerchantException extends RuntimeException {
         super(message);
     }
 
+    protected MerchantException(String message, Throwable cause) {
+        super(message, cause);
+    }
+
 }
