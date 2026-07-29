@@ -3,6 +3,8 @@ package io.payguard.userservice.integration.persistence.repository.impl;
 import io.payguard.userservice.application.event.ClaimedOutboxEvent;
 import io.payguard.userservice.application.event.OutboxEvent;
 import io.payguard.userservice.application.event.OutboxEventPublicationRepository;
+import io.payguard.userservice.application.event.OutboxEventRecoveryRepository;
+import io.payguard.userservice.application.event.OutboxEventRecoveryResult;
 import io.payguard.userservice.application.event.OutboxEventRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -24,7 +26,8 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class JdbcOutboxEventRepository
         implements OutboxEventRepository,
-        OutboxEventPublicationRepository {
+        OutboxEventPublicationRepository,
+        OutboxEventRecoveryRepository {
 
     private static final String INSERT_EVENT = """
             INSERT INTO outbox_events (
@@ -143,6 +146,51 @@ public class JdbcOutboxEventRepository
               AND claim_id = :claimId
               AND published_at IS NULL
               AND failed_at IS NULL
+            """;
+
+    private static final String FIND_EVENT_FOR_RECOVERY = """
+            SELECT
+                published_at,
+                failed_at,
+                attempts,
+                last_error
+            FROM outbox_events
+            WHERE id = :eventId
+            FOR UPDATE
+            """;
+
+    private static final String INSERT_RECOVERY = """
+            INSERT INTO outbox_event_recoveries (
+                id,
+                event_id,
+                recovered_by,
+                recovery_reason,
+                previous_attempts,
+                previous_failed_at,
+                previous_last_error
+            )
+            VALUES (
+                :recoveryId,
+                :eventId,
+                :recoveredBy,
+                :recoveryReason,
+                :previousAttempts,
+                :previousFailedAt,
+                :previousLastError
+            )
+            """;
+
+    private static final String RECOVER_EVENT = """
+            UPDATE outbox_events
+            SET failed_at = NULL,
+                attempts = 0,
+                next_attempt_at = CURRENT_TIMESTAMP,
+                last_error = NULL,
+                claim_id = NULL,
+                claimed_until = NULL
+            WHERE id = :eventId
+              AND published_at IS NULL
+              AND failed_at = :previousFailedAt
             """;
 
     private final NamedParameterJdbcTemplate jdbcTemplate;
@@ -310,6 +358,93 @@ public class JdbcOutboxEventRepository
         ) == 1;
     }
 
+    @Override
+    @Transactional
+    public OutboxEventRecoveryResult recover(
+            UUID recoveryId,
+            UUID eventId,
+            String recoveredBy,
+            String reason
+    ) {
+
+        MapSqlParameterSource eventParameters =
+                new MapSqlParameterSource()
+                        .addValue(
+                                "eventId",
+                                eventId
+                        );
+
+        List<RecoverableOutboxEvent> events =
+                jdbcTemplate.query(
+                        FIND_EVENT_FOR_RECOVERY,
+                        eventParameters,
+                        this::mapRecoverableEvent
+                );
+
+        if (events.isEmpty()) {
+            return OutboxEventRecoveryResult.EVENT_NOT_FOUND;
+        }
+
+        RecoverableOutboxEvent event = events.get(0);
+
+        if (event.publishedAt() != null) {
+            return OutboxEventRecoveryResult.EVENT_ALREADY_PUBLISHED;
+        }
+
+        if (event.failedAt() == null) {
+            return OutboxEventRecoveryResult.EVENT_NOT_EXHAUSTED;
+        }
+
+        MapSqlParameterSource recoveryParameters =
+                new MapSqlParameterSource()
+                        .addValue(
+                                "recoveryId",
+                                recoveryId
+                        )
+                        .addValue(
+                                "eventId",
+                                eventId
+                        )
+                        .addValue(
+                                "recoveredBy",
+                                recoveredBy
+                        )
+                        .addValue(
+                                "recoveryReason",
+                                reason
+                        )
+                        .addValue(
+                                "previousAttempts",
+                                event.attempts()
+                        )
+                        .addValue(
+                                "previousFailedAt",
+                                event.failedAt()
+                        )
+                        .addValue(
+                                "previousLastError",
+                                event.lastError()
+                        );
+
+        jdbcTemplate.update(
+                INSERT_RECOVERY,
+                recoveryParameters
+        );
+
+        int recoveredEvents = jdbcTemplate.update(
+                RECOVER_EVENT,
+                recoveryParameters
+        );
+
+        if (recoveredEvents != 1) {
+            throw new IllegalStateException(
+                    "Unable to recover locked outbox event."
+            );
+        }
+
+        return OutboxEventRecoveryResult.RECOVERED;
+    }
+
     private ClaimedOutboxEvent mapClaimedEvent(
             ResultSet resultSet,
             int rowNumber
@@ -352,6 +487,28 @@ public class JdbcOutboxEventRepository
         );
     }
 
+    private RecoverableOutboxEvent mapRecoverableEvent(ResultSet resultSet, int rowNumber) throws SQLException {
+
+        OffsetDateTime publishedAt =
+                resultSet.getObject(
+                        "published_at",
+                        OffsetDateTime.class
+                );
+
+        OffsetDateTime failedAt =
+                resultSet.getObject(
+                        "failed_at",
+                        OffsetDateTime.class
+                );
+
+        return new RecoverableOutboxEvent(
+                publishedAt,
+                failedAt,
+                resultSet.getInt("attempts"),
+                resultSet.getString("last_error")
+        );
+    }
+
     private MapSqlParameterSource ownershipParameters(
             UUID eventId,
             UUID claimId
@@ -360,5 +517,15 @@ public class JdbcOutboxEventRepository
         return new MapSqlParameterSource()
                 .addValue("eventId", eventId)
                 .addValue("claimId", claimId);
+    }
+
+    private record RecoverableOutboxEvent(
+
+            OffsetDateTime publishedAt,
+            OffsetDateTime failedAt,
+            int attempts,
+            String lastError
+
+    ) {
     }
 }

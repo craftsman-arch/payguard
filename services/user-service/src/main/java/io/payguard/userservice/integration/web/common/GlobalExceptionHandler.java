@@ -1,5 +1,8 @@
 package io.payguard.userservice.integration.web.common;
 
+import io.payguard.userservice.application.event.recovery.OutboxEventAlreadyPublishedException;
+import io.payguard.userservice.application.event.recovery.OutboxEventNotExhaustedException;
+import io.payguard.userservice.application.event.recovery.OutboxEventNotFoundException;
 import io.payguard.userservice.application.time.TimeProvider;
 import io.payguard.userservice.domain.merchant.exception.MerchantAlreadyExistsException;
 import io.payguard.userservice.domain.merchant.exception.MerchantException;
@@ -65,6 +68,42 @@ public class GlobalExceptionHandler {
             "Payment account creation requires manual reconciliation.";
 
     private final TimeProvider timeProvider;
+
+    @ExceptionHandler(OutboxEventNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleOutboxEventNotFound(
+            OutboxEventNotFoundException exception,
+            HttpServletRequest request
+    ) {
+
+        return buildErrorResponse(
+                HttpStatus.NOT_FOUND,
+                exception,
+                request
+        );
+    }
+
+    @ExceptionHandler({
+            OutboxEventNotExhaustedException.class,
+            OutboxEventAlreadyPublishedException.class
+    })
+    public ResponseEntity<ErrorResponse> handleOutboxEventRecoveryConflict(
+            RuntimeException exception,
+            HttpServletRequest request
+    ) {
+
+        log.warn(
+                "Rejected outbox event recovery request [{} {}]: {}",
+                request.getMethod(),
+                request.getRequestURI(),
+                exception.getMessage()
+        );
+
+        return buildErrorResponse(
+                HttpStatus.CONFLICT,
+                exception,
+                request
+        );
+    }
 
     @ExceptionHandler(PaymentAccountReconciliationRequiredException.class)
     public ResponseEntity<ErrorResponse> handlePaymentAccountReconciliation(
