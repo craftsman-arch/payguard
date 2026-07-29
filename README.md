@@ -1,9 +1,9 @@
 # PayGuard
 
 PayGuard is a marketplace payment platform organized as independently
-deployable services. The current implementation focus is User Service: merchant
-identity, Stripe Connect onboarding, payment readiness and lifecycle-event
-publication.
+deployable services. Its architecture separates identity and merchant
+management, payment processing, notifications, reconciliation and fraud
+analysis into explicit service boundaries.
 
 ## Repository structure
 
@@ -30,7 +30,8 @@ and planned work are intentionally documented separately.
 
 ## Current User Service capabilities
 
-- Keycloak-backed merchant identity;
+- self-service merchant registration with Keycloak password policy, email
+  verification and OTP;
 - Stripe Connect account creation and hosted onboarding;
 - normalized payment-account status and required-action policy;
 - merchant readiness and destination-charge eligibility;
@@ -74,6 +75,7 @@ Useful endpoints:
 | API Gateway | http://localhost:8084 |
 | User Service | http://localhost:8081 |
 | Redpanda Console | http://localhost:8085 |
+| Mailpit | http://localhost:8025 |
 | PostgreSQL | `localhost:5432` |
 | Kafka | `localhost:9092` |
 | Grafana | http://localhost:3000 |
@@ -93,8 +95,8 @@ mvn spring-boot:run
 ```
 
 When running from an IDE, configure the environment variables required by
-`application.yaml`. The local imported Keycloak realm currently configures the
-confidential `payguard-api` client with this development secret:
+`application.yaml`. `KEYCLOAK_CLIENT_SECRET` must have the same value in User
+Service and in the local realm import:
 
 ```text
 KEYCLOAK_CLIENT_SECRET=payguard-secret

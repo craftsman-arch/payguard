@@ -41,19 +41,23 @@ public class MerchantController {
             description = """
                 Registers a new merchant and starts the onboarding process.
 
-                The service creates a Keycloak user, provisions a Stripe
-                Connected Account and returns a Stripe Connect onboarding URL.
+                The merchant supplies a password selected in the PayGuard
+                registration form. The service creates an enabled Keycloak
+                user with a permanent credential, assigns the MERCHANT role,
+                requires email verification and OTP configuration, provisions
+                a Stripe Connected Account and returns a Stripe Connect
+                onboarding URL.
 
                 The client application should redirect the merchant to the
                 returned onboarding URL to complete Stripe Connect onboarding.
+                Authentication is performed separately through Authorization
+                Code with PKCE; this endpoint never returns access or refresh
+                tokens.
 
                 The merchant remains in the PENDING state until Stripe
                 completes onboarding and sends an account.updated webhook,
                 after which the merchant becomes ACTIVE.
 
-                Registration is idempotent. If a merchant with the same
-                email already exists, the existing merchant and a new
-                onboarding URL are returned.
                 """
     )
     @ApiResponses({
@@ -78,8 +82,40 @@ public class MerchantController {
                     )
             ),
             @ApiResponse(
+                    responseCode = "409",
+                    description = "A merchant or Keycloak identity already exists.",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = ErrorResponse.class)
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "422",
+                    description = "The password violates the security policy or the payment provider rejected the request.",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = ErrorResponse.class)
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "502",
+                    description = "The identity provider returned an unexpected response.",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = ErrorResponse.class)
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "503",
+                    description = "The identity provider or payment provider is temporarily unavailable.",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = ErrorResponse.class)
+                    )
+            ),
+            @ApiResponse(
                     responseCode = "500",
-                    description = "Unexpected error during merchant onboarding.",
+                    description = "Unexpected internal error during merchant onboarding.",
                     content = @Content(
                             mediaType = "application/json",
                             schema = @Schema(

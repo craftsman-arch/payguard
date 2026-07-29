@@ -2,6 +2,7 @@
   "realm": "payguard",
   "enabled": true,
   "verifyEmail": true,
+  "passwordPolicy": "length(12) and maxLength(128) and notUsername and notEmail and passwordHistory(5)",
   "accessTokenLifespan": 300,
   "otpPolicyType": "totp",
   "otpPolicyAlgorithm": "HmacSHA1",

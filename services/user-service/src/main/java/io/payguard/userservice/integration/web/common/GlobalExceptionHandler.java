@@ -4,6 +4,11 @@ import io.payguard.userservice.application.time.TimeProvider;
 import io.payguard.userservice.domain.merchant.exception.MerchantAlreadyExistsException;
 import io.payguard.userservice.domain.merchant.exception.MerchantException;
 import io.payguard.userservice.domain.merchant.exception.MerchantNotFoundException;
+import io.payguard.userservice.integration.identity.exception.KeycloakAuthenticationException;
+import io.payguard.userservice.integration.identity.exception.KeycloakException;
+import io.payguard.userservice.integration.identity.exception.KeycloakPasswordPolicyException;
+import io.payguard.userservice.integration.identity.exception.KeycloakUnavailableException;
+import io.payguard.userservice.integration.identity.exception.KeycloakUserConflictException;
 import io.payguard.userservice.integration.payment.error.exception.StripeProviderRejectedException;
 import io.payguard.userservice.integration.payment.error.exception.StripeProviderUnavailableException;
 import io.payguard.userservice.integration.payment.error.exception.StripeSignatureVerificationException;
@@ -41,6 +46,18 @@ public class GlobalExceptionHandler {
 
     private static final String INVALID_WEBHOOK_SIGNATURE_MESSAGE =
             "Invalid webhook signature.";
+
+    private static final String IDENTITY_PROVIDER_UNAVAILABLE_MESSAGE =
+            "Identity provider is temporarily unavailable.";
+
+    private static final String IDENTITY_PROVIDER_ERROR_MESSAGE =
+            "Identity provider failed to process the request.";
+
+    private static final String IDENTITY_ALREADY_EXISTS_MESSAGE =
+            "Merchant identity already exists.";
+
+    private static final String PASSWORD_POLICY_REJECTED_MESSAGE =
+            "Password does not satisfy the security policy.";
 
     private final TimeProvider timeProvider;
 
@@ -134,6 +151,89 @@ public class GlobalExceptionHandler {
         return buildErrorResponse(
                 HttpStatus.BAD_REQUEST,
                 INVALID_WEBHOOK_SIGNATURE_MESSAGE,
+                request
+        );
+    }
+
+    @ExceptionHandler(KeycloakPasswordPolicyException.class)
+    public ResponseEntity<ErrorResponse> handleKeycloakPasswordPolicy(
+            KeycloakPasswordPolicyException exception,
+            HttpServletRequest request
+    ) {
+
+        log.warn(
+                "Keycloak rejected a password while processing request [{} {}].",
+                request.getMethod(),
+                request.getRequestURI(),
+                exception
+        );
+
+        return buildErrorResponse(
+                HttpStatus.UNPROCESSABLE_ENTITY,
+                PASSWORD_POLICY_REJECTED_MESSAGE,
+                request
+        );
+    }
+
+    @ExceptionHandler(KeycloakUserConflictException.class)
+    public ResponseEntity<ErrorResponse> handleKeycloakUserConflict(
+            KeycloakUserConflictException exception,
+            HttpServletRequest request
+    ) {
+
+        log.warn(
+                "Keycloak identity conflict while processing request [{} {}].",
+                request.getMethod(),
+                request.getRequestURI(),
+                exception
+        );
+
+        return buildErrorResponse(
+                HttpStatus.CONFLICT,
+                IDENTITY_ALREADY_EXISTS_MESSAGE,
+                request
+        );
+    }
+
+    @ExceptionHandler({
+            KeycloakUnavailableException.class,
+            KeycloakAuthenticationException.class
+    })
+    public ResponseEntity<ErrorResponse> handleKeycloakUnavailable(
+            KeycloakException exception,
+            HttpServletRequest request
+    ) {
+
+        log.error(
+                "Keycloak is unavailable while processing request [{} {}].",
+                request.getMethod(),
+                request.getRequestURI(),
+                exception
+        );
+
+        return buildErrorResponse(
+                HttpStatus.SERVICE_UNAVAILABLE,
+                IDENTITY_PROVIDER_UNAVAILABLE_MESSAGE,
+                request
+        );
+    }
+
+    @ExceptionHandler(KeycloakException.class)
+    public ResponseEntity<ErrorResponse> handleKeycloakException(
+            KeycloakException exception,
+            HttpServletRequest request
+    ) {
+
+        log.error(
+                "Unexpected Keycloak response while processing request [{} {}].",
+                request.getMethod(),
+                request.getRequestURI(),
+                exception
+        );
+
+        return buildErrorResponse(
+                HttpStatus.BAD_GATEWAY,
+                IDENTITY_PROVIDER_ERROR_MESSAGE,
                 request
         );
     }
