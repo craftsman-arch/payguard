@@ -17,6 +17,9 @@ public class MerchantMapper {
                 .country(merchant.getCountry())
                 .identityUserId(merchant.getIdentityUserId())
                 .paymentAccountId(merchant.getPaymentAccountId())
+                .paymentAccountCreationStartedAt(
+                        merchant.getPaymentAccountCreationStartedAt()
+                )
                 .paymentAccountStatus(merchant.getPaymentAccountStatus())
                 .paymentAccountStatusReason(merchant.getPaymentAccountStatusReason())
                 .paymentAccountRequiredAction(
@@ -43,6 +46,7 @@ public class MerchantMapper {
                 entity.getRevision(),
                 entity.getIdentityUserId(),
                 entity.getPaymentAccountId(),
+                entity.getPaymentAccountCreationStartedAt(),
                 entity.getPaymentAccountStatus(),
                 entity.getPaymentAccountStatusReason(),
                 entity.getPaymentAccountRequiredAction(),

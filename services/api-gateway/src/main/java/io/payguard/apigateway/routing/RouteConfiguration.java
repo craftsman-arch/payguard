@@ -17,7 +17,35 @@ public class RouteConfiguration {
 
         return builder.routes()
                 .route(
-                        "merchant-registration",
+                        "merchant-identity-registration",
+                        route -> route
+                                .path("/api/merchant-registrations")
+                                .filters(filter ->
+                                        filter.setPath(
+                                                "/api/v1/merchant-registrations"
+                                        )
+                                )
+                                .uri(
+                                        properties.userService().uri()
+                                )
+                )
+                .route(
+                        "merchant-verification-email",
+                        route -> route
+                                .path(
+                                        "/api/merchant-registrations/verification-email"
+                                )
+                                .filters(filter ->
+                                        filter.setPath(
+                                                "/api/v1/merchant-registrations/verification-email"
+                                        )
+                                )
+                                .uri(
+                                        properties.userService().uri()
+                                )
+                )
+                .route(
+                        "merchant-profile",
                         route -> route
                                 .path("/api/merchants")
                                 .filters(filter ->

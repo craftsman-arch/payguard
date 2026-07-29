@@ -23,6 +23,7 @@ public class Merchant {
     private MerchantStatus status;
     private String identityUserId;
     private String paymentAccountId;
+    private Instant paymentAccountCreationStartedAt;
     private PaymentAccountStatus paymentAccountStatus;
     private String paymentAccountStatusReason;
     private PaymentAccountRequiredAction paymentAccountRequiredAction;
@@ -41,6 +42,7 @@ public class Merchant {
             long revision,
             String identityUserId,
             String paymentAccountId,
+            Instant paymentAccountCreationStartedAt,
             PaymentAccountStatus paymentAccountStatus,
             String paymentAccountStatusReason,
             PaymentAccountRequiredAction paymentAccountRequiredAction,
@@ -59,6 +61,8 @@ public class Merchant {
         this.revision = revision;
         this.identityUserId = identityUserId;
         this.paymentAccountId = paymentAccountId;
+        this.paymentAccountCreationStartedAt =
+                paymentAccountCreationStartedAt;
         this.paymentAccountStatus = paymentAccountStatus;
         this.paymentAccountStatusReason = paymentAccountStatusReason;
         this.paymentAccountRequiredAction = paymentAccountRequiredAction;
@@ -70,12 +74,13 @@ public class Merchant {
         this.updatedAt = updatedAt;
     }
 
-    public static Merchant register(
+    public static Merchant registerForIdentity(
             @NonNull UUID id,
             @NonNull Email email,
             @NonNull String legalName,
             @NonNull BusinessType businessType,
             @NonNull Country country,
+            @NonNull String identityUserId,
             @NonNull Instant now
     ) {
 
@@ -86,6 +91,7 @@ public class Merchant {
                 businessType,
                 country,
                 0,
+                identityUserId,
                 null,
                 null,
                 PaymentAccountStatus.PENDING_ONBOARDING,
@@ -109,6 +115,7 @@ public class Merchant {
             long revision,
             String identityUserId,
             String paymentAccountId,
+            Instant paymentAccountCreationStartedAt,
             @NonNull PaymentAccountStatus paymentAccountStatus,
             String paymentAccountStatusReason,
             @NonNull PaymentAccountRequiredAction paymentAccountRequiredAction,
@@ -129,6 +136,7 @@ public class Merchant {
                 revision,
                 identityUserId,
                 paymentAccountId,
+                paymentAccountCreationStartedAt,
                 paymentAccountStatus,
                 paymentAccountStatusReason,
                 paymentAccountRequiredAction,
@@ -159,10 +167,6 @@ public class Merchant {
 
     public boolean hasPaymentAccount() {
         return paymentAccountId != null;
-    }
-
-    public boolean canProvisionIdentity() {
-        return isPending() && !hasIdentity();
     }
 
     public boolean canProvisionPaymentAccount() {
@@ -196,20 +200,6 @@ public class Merchant {
                 && paymentAccountRequiredAction.requiresOnboarding();
     }
 
-    public void linkIdentity(String identityUserId, Instant now) {
-
-        if (!isPending()) {
-            throw new MerchantNotReadyForActivationException();
-        }
-
-        if (hasIdentity()) {
-            throw new MerchantAlreadyLinkedToIdentityProviderException();
-        }
-
-        this.identityUserId = identityUserId;
-        this.updatedAt = now;
-    }
-
     public void linkPaymentProvider(String paymentAccountId, Instant now) {
 
         if (!isPending()) {
@@ -221,9 +211,32 @@ public class Merchant {
         }
 
         this.paymentAccountId = paymentAccountId;
+        this.paymentAccountCreationStartedAt = null;
         this.paymentAccountStatus = PaymentAccountStatus.PENDING_ONBOARDING;
         this.paymentAccountRequiredAction =
                 PaymentAccountRequiredAction.CONTINUE_ONBOARDING;
+        this.updatedAt = now;
+    }
+
+    public void recordPaymentAccountCreationStarted(Instant now) {
+
+        if (hasPaymentAccount()) {
+            throw new MerchantAlreadyLinkedToPaymentProviderException();
+        }
+
+        if (paymentAccountCreationStartedAt == null) {
+            this.paymentAccountCreationStartedAt = now;
+            this.updatedAt = now;
+        }
+    }
+
+    public void clearPaymentAccountCreationAttempt(Instant now) {
+
+        if (hasPaymentAccount()) {
+            return;
+        }
+
+        this.paymentAccountCreationStartedAt = null;
         this.updatedAt = now;
     }
 

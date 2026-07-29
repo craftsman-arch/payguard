@@ -23,7 +23,7 @@ public class StripePaymentProvider implements PaymentProvider {
                         merchant
                 ),
 
-                "merchant-account-"
+                "merchant-account:"
                         + merchant.getId()
         );
     }
@@ -32,12 +32,6 @@ public class StripePaymentProvider implements PaymentProvider {
     public String createMerchantOnboardingLink(Merchant merchant) {
 
         return stripeClient.createAccountLink(mapper.toCreateAccountLinkRequest(merchant));
-    }
-
-    @Override
-    public void deleteMerchantAccount(String accountId) {
-
-        stripeClient.deleteAccount(accountId);
     }
 
 }

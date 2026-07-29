@@ -8,6 +8,8 @@ public interface IdentityProvider {
 
     void assignRealmRole(String identityUserId, IdentityRole role);
 
-    void deleteUser(String identityUserId);
+    void sendVerificationEmail(String identityUserId);
+
+    void resumeMerchantIdentityRegistration(Email email);
 
 }

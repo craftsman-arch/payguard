@@ -13,6 +13,6 @@ public interface KeycloakAdminClient {
 
     void assignRealmRole(String userId, String roleName);
 
-    void deleteUser(String userId);
+    void sendVerificationEmail(String userId);
 
 }

@@ -44,6 +44,9 @@ public class MerchantEntity {
     @Column(unique = true)
     private String paymentAccountId;
 
+    @Column
+    private Instant paymentAccountCreationStartedAt;
+
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     private PaymentAccountStatus paymentAccountStatus;

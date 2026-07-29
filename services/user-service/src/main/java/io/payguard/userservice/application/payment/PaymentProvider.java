@@ -8,6 +8,4 @@ public interface PaymentProvider {
 
     String createMerchantOnboardingLink(Merchant merchant);
 
-    void deleteMerchantAccount(String paymentAccountId);
-
 }

@@ -46,7 +46,8 @@ public class SecurityConfiguration {
 
                         .requestMatchers(
                                 HttpMethod.POST,
-                                "/api/v1/merchants",
+                                "/api/v1/merchant-registrations",
+                                "/api/v1/merchant-registrations/verification-email",
                                 "/api/v1/webhooks/stripe"
                         ).permitAll()
 

@@ -9,7 +9,6 @@ import io.payguard.userservice.integration.payment.config.StripeProperties;
 import io.payguard.userservice.integration.payment.error.dto.StripeError;
 import io.payguard.userservice.integration.payment.error.dto.StripeErrorResponse;
 import io.payguard.userservice.integration.payment.error.exception.StripeAccountCreationException;
-import io.payguard.userservice.integration.payment.error.exception.StripeAccountDeletionException;
 import io.payguard.userservice.integration.payment.error.exception.StripeProviderRejectedException;
 import io.payguard.userservice.integration.payment.error.exception.StripeProviderUnavailableException;
 import lombok.RequiredArgsConstructor;
@@ -133,40 +132,6 @@ public class RestClientStripeClient implements StripeClient {
 
             throw new StripeProviderUnavailableException(
                     "Stripe is unavailable while creating an onboarding link.",
-                    ex
-            );
-        }
-    }
-
-    @Override public void deleteAccount(String accountId) {
-
-        try {
-
-            stripeRestClient
-                    .delete()
-                    .uri(
-                            ACCOUNTS_ENDPOINT + "/{accountId}",
-                            accountId
-                    )
-                    .headers(headers ->
-                            headers.setBearerAuth(
-                                    properties.secretKey()
-                            )
-                    )
-                    .retrieve()
-                    .toBodilessEntity();
-
-        } catch (HttpClientErrorException ex) {
-
-            throw new StripeAccountDeletionException(
-                    extractErrorMessage(ex),
-                    ex
-            );
-
-        } catch (RestClientException ex) {
-
-            throw new StripeAccountDeletionException(
-                    "Failed to delete Stripe account.",
                     ex
             );
         }

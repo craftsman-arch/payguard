@@ -1,14 +1,14 @@
-package io.payguard.userservice.application.merchant.register;
+package io.payguard.userservice.application.merchant.profile;
 
 import io.payguard.userservice.domain.merchant.MerchantStatus;
 
 import java.util.UUID;
 
-public record RegisterMerchantResult(
+public record CreateMerchantProfileResult(
 
         UUID id,
         MerchantStatus status,
-        String onboardingUrl
+        boolean created
 
 ) {
 }

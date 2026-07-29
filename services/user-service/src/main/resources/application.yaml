@@ -54,11 +54,14 @@ stripe:
   return-url: ${STRIPE_RETURN_URL:http://localhost:5173/onboarding/success}
 
 payment-provider:
-  webhook:
-    concurrency-retry:
-      max-attempts: ${PAYMENT_WEBHOOK_CONCURRENCY_MAX_ATTEMPTS:3}
-      min-backoff: ${PAYMENT_WEBHOOK_CONCURRENCY_MIN_BACKOFF:20ms}
-      max-backoff: ${PAYMENT_WEBHOOK_CONCURRENCY_MAX_BACKOFF:100ms}
+  account-creation:
+    idempotency-safety-window: ${STRIPE_ACCOUNT_IDEMPOTENCY_SAFETY_WINDOW:23h}
+
+merchant:
+  concurrency-retry:
+    max-attempts: ${MERCHANT_CONCURRENCY_MAX_ATTEMPTS:3}
+    min-backoff: ${MERCHANT_CONCURRENCY_MIN_BACKOFF:20ms}
+    max-backoff: ${MERCHANT_CONCURRENCY_MAX_BACKOFF:100ms}
 
 outbox:
   publisher:

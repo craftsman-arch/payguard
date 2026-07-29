@@ -6,7 +6,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.retry.support.RetryTemplate;
 import org.springframework.stereotype.Service;
 
-import static io.payguard.userservice.application.payment.webhook.PaymentProviderWebhookConcurrencyRetryConfiguration.RETRY_TEMPLATE;
+import static io.payguard.userservice.application.merchant.concurrency.MerchantConcurrencyRetryConfiguration.RETRY_TEMPLATE;
 
 @Service
 @Slf4j

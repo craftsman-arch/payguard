@@ -3,10 +3,13 @@ package io.payguard.userservice.integration.persistence.repository.impl;
 import io.payguard.userservice.domain.merchant.Merchant;
 import io.payguard.userservice.domain.merchant.MerchantRepository;
 import io.payguard.userservice.domain.merchant.exception.ConcurrentMerchantModificationException;
+import io.payguard.userservice.domain.merchant.exception.MerchantAlreadyExistsException;
 import io.payguard.userservice.domain.merchant.value.Email;
 import io.payguard.userservice.integration.persistence.mapper.MerchantMapper;
 import io.payguard.userservice.integration.persistence.repository.MerchantJpaRepository;
 import lombok.RequiredArgsConstructor;
+import org.hibernate.exception.ConstraintViolationException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.stereotype.Repository;
 
@@ -17,12 +20,59 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class MerchantRepositoryImpl implements MerchantRepository {
 
+    private static final String EMAIL_UNIQUE_CONSTRAINT =
+            "uk_merchants_email";
+
+    private static final String IDENTITY_UNIQUE_CONSTRAINT =
+            "uk_merchants_identity_user_id";
+
     private final MerchantJpaRepository repository;
     private final MerchantMapper mapper;
 
     @Override
     public void add(Merchant merchant) {
-        repository.save(mapper.toEntity(merchant));
+
+        try {
+
+            repository.saveAndFlush(
+                    mapper.toEntity(merchant)
+            );
+
+        } catch (DataIntegrityViolationException exception) {
+
+            if (isMerchantIdentityConflict(exception)) {
+                throw new MerchantAlreadyExistsException(
+                        merchant.getEmail(),
+                        exception
+                );
+            }
+
+            throw exception;
+        }
+    }
+
+    private boolean isMerchantIdentityConflict(Throwable exception) {
+
+        Throwable cause = exception;
+
+        while (cause != null) {
+
+            if (cause instanceof ConstraintViolationException violation) {
+
+                String constraintName =
+                        violation.getConstraintName();
+
+                return EMAIL_UNIQUE_CONSTRAINT.equalsIgnoreCase(
+                        constraintName
+                ) || IDENTITY_UNIQUE_CONSTRAINT.equalsIgnoreCase(
+                        constraintName
+                );
+            }
+
+            cause = cause.getCause();
+        }
+
+        return false;
     }
 
     @Override

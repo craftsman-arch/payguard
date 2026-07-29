@@ -6,6 +6,10 @@ import io.payguard.userservice.integration.identity.dto.KeycloakCredential;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.Map;
+
+import static io.payguard.userservice.integration.identity.KeycloakIdentityOrigin.ATTRIBUTE;
+import static io.payguard.userservice.integration.identity.KeycloakIdentityOrigin.MERCHANT_SELF_REGISTRATION;
 
 @Component
 public class KeycloakMapper {
@@ -33,6 +37,10 @@ public class KeycloakMapper {
                 List.of(
                         VERIFY_EMAIL,
                         CONFIGURE_TOTP
+                ),
+                Map.of(
+                        ATTRIBUTE,
+                        List.of(MERCHANT_SELF_REGISTRATION)
                 )
         );
     }
