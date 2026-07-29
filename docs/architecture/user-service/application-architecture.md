@@ -106,8 +106,26 @@ The local Merchant registration transaction commits before external onboarding
 orchestration. Keycloak and Stripe resources are then provisioned, linked to the
 Merchant and saved with optimistic concurrency.
 
+The public React registration form supplies the merchant-selected password.
+User Service forwards it directly to Keycloak Admin API as a permanent
+credential; it does not store the password in the Merchant aggregate or any
+local persistence model. Keycloak owns password-policy validation, password
+hashing, email verification and OTP credentials.
+
+New merchant identities are enabled with `emailVerified=false`, the `MERCHANT`
+realm role and the `VERIFY_EMAIL` and `CONFIGURE_TOTP` required actions.
+Registration does not issue authentication tokens. The merchant subsequently
+authenticates through the public `merchant-portal` client using Authorization
+Code with PKCE.
+
+Provider failures are normalized at the web boundary: password-policy rejection
+is `422`, identity conflict is `409`, provider unavailability is `503`, and an
+unexpected identity-provider response is `502`. Original provider exceptions
+remain available in server-side logs.
+
 This flow currently uses best-effort compensation for external resources.
-Durable onboarding reconciliation belongs to the reliability scope.
+Durable onboarding reconciliation, partial-registration recovery and concurrent
+registration control belong to the reliability scope.
 
 ### Stripe webhook
 
@@ -146,3 +164,8 @@ Publication is at least once. Consumers must deduplicate by event ID.
   and payment-service scope.
 - Browser SPA authentication uses the Keycloak authorization-code flow with
   PKCE.
+- Merchant self-registration uses the PayGuard form and does not use invitation
+  tokens or issue authentication tokens.
+- Password credentials cross the browser, Gateway and User Service only on the
+  registration request and terminate at Keycloak; they are not domain or event
+  data.
