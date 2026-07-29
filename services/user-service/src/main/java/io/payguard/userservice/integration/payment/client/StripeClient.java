@@ -14,8 +14,4 @@ public interface StripeClient {
             StripeAccountLinkRequest request
     );
 
-    void deleteAccount(
-            String accountId
-    );
-
 }

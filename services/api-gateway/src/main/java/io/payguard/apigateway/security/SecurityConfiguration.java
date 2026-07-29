@@ -35,13 +35,14 @@ public class SecurityConfiguration {
                 .authorizeExchange(exchange -> exchange
                         .pathMatchers(
                                 "/auth/**",
-                                "/actuator/**",
-                                "/api/merchants"
+                                "/actuator/**"
                         )
                         .permitAll()
 
                         .pathMatchers(
                                 HttpMethod.POST,
+                                "/api/merchant-registrations",
+                                "/api/merchant-registrations/verification-email",
                                 "/api/webhooks/stripe"
                         )
                         .permitAll()

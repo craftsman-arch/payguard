@@ -1,4 +1,4 @@
-package io.payguard.userservice.application.payment.webhook;
+package io.payguard.userservice.application.merchant.concurrency;
 
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
@@ -8,8 +8,8 @@ import org.springframework.validation.annotation.Validated;
 import java.time.Duration;
 
 @Validated
-@ConfigurationProperties(prefix = "payment-provider.webhook.concurrency-retry")
-public record PaymentProviderWebhookConcurrencyRetryProperties(
+@ConfigurationProperties(prefix = "merchant.concurrency-retry")
+public record MerchantConcurrencyRetryProperties(
 
         @Min(1)
         int maxAttempts,
@@ -22,7 +22,7 @@ public record PaymentProviderWebhookConcurrencyRetryProperties(
 
 ) {
 
-    public PaymentProviderWebhookConcurrencyRetryProperties {
+    public MerchantConcurrencyRetryProperties {
 
         if (minBackoff != null
                 && (

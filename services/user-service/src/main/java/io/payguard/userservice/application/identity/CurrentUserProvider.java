@@ -2,6 +2,10 @@ package io.payguard.userservice.application.identity;
 
 public interface CurrentUserProvider {
 
-    String currentUserId();
+    AuthenticatedUser currentUser();
+
+    default String currentUserId() {
+        return currentUser().id();
+    }
 
 }

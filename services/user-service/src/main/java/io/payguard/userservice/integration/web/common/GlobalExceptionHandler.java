@@ -4,6 +4,8 @@ import io.payguard.userservice.application.time.TimeProvider;
 import io.payguard.userservice.domain.merchant.exception.MerchantAlreadyExistsException;
 import io.payguard.userservice.domain.merchant.exception.MerchantException;
 import io.payguard.userservice.domain.merchant.exception.MerchantNotFoundException;
+import io.payguard.userservice.domain.merchant.exception.UnverifiedMerchantIdentityException;
+import io.payguard.userservice.domain.merchant.exception.PaymentAccountReconciliationRequiredException;
 import io.payguard.userservice.integration.identity.exception.KeycloakAuthenticationException;
 import io.payguard.userservice.integration.identity.exception.KeycloakException;
 import io.payguard.userservice.integration.identity.exception.KeycloakPasswordPolicyException;
@@ -59,7 +61,49 @@ public class GlobalExceptionHandler {
     private static final String PASSWORD_POLICY_REJECTED_MESSAGE =
             "Password does not satisfy the security policy.";
 
+    private static final String PAYMENT_ACCOUNT_RECONCILIATION_MESSAGE =
+            "Payment account creation requires manual reconciliation.";
+
     private final TimeProvider timeProvider;
+
+    @ExceptionHandler(PaymentAccountReconciliationRequiredException.class)
+    public ResponseEntity<ErrorResponse> handlePaymentAccountReconciliation(
+            PaymentAccountReconciliationRequiredException exception,
+            HttpServletRequest request
+    ) {
+
+        log.error(
+                "Payment-account creation requires reconciliation while processing request [{} {}].",
+                request.getMethod(),
+                request.getRequestURI(),
+                exception
+        );
+
+        return buildErrorResponse(
+                HttpStatus.CONFLICT,
+                PAYMENT_ACCOUNT_RECONCILIATION_MESSAGE,
+                request
+        );
+    }
+
+    @ExceptionHandler(UnverifiedMerchantIdentityException.class)
+    public ResponseEntity<ErrorResponse> handleUnverifiedMerchantIdentity(
+            UnverifiedMerchantIdentityException exception,
+            HttpServletRequest request
+    ) {
+
+        log.warn(
+                "Unverified merchant identity attempted to create a profile [{} {}].",
+                request.getMethod(),
+                request.getRequestURI()
+        );
+
+        return buildErrorResponse(
+                HttpStatus.FORBIDDEN,
+                exception,
+                request
+        );
+    }
 
     @ExceptionHandler(MerchantAlreadyExistsException.class)
     public ResponseEntity<ErrorResponse> handleConflict(

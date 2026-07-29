@@ -1,4 +1,4 @@
-package io.payguard.userservice.application.payment.webhook;
+package io.payguard.userservice.application.merchant.concurrency;
 
 import io.payguard.userservice.domain.merchant.exception.ConcurrentMerchantModificationException;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -11,15 +11,15 @@ import org.springframework.retry.support.RetryTemplate;
 import java.util.Map;
 
 @Configuration
-@EnableConfigurationProperties(PaymentProviderWebhookConcurrencyRetryProperties.class)
-public class PaymentProviderWebhookConcurrencyRetryConfiguration {
+@EnableConfigurationProperties(MerchantConcurrencyRetryProperties.class)
+public class MerchantConcurrencyRetryConfiguration {
 
     public static final String RETRY_TEMPLATE =
-            "paymentProviderWebhookConcurrencyRetryTemplate";
+            "merchantConcurrencyRetryTemplate";
 
     @Bean(RETRY_TEMPLATE)
-    public RetryTemplate paymentProviderWebhookConcurrencyRetryTemplate(
-            PaymentProviderWebhookConcurrencyRetryProperties properties
+    public RetryTemplate merchantConcurrencyRetryTemplate(
+            MerchantConcurrencyRetryProperties properties
     ) {
 
         SimpleRetryPolicy retryPolicy = new SimpleRetryPolicy(

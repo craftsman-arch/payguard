@@ -11,7 +11,7 @@ import io.payguard.userservice.integration.identity.exception.KeycloakRoleAssign
 import io.payguard.userservice.integration.identity.exception.KeycloakUnavailableException;
 import io.payguard.userservice.integration.identity.exception.KeycloakUserConflictException;
 import io.payguard.userservice.integration.identity.exception.KeycloakUserCreationException;
-import io.payguard.userservice.integration.identity.exception.KeycloakUserDeletionException;
+import io.payguard.userservice.integration.identity.exception.KeycloakVerificationEmailException;
 import io.payguard.userservice.integration.identity.token.KeycloakTokenClient;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -40,6 +40,9 @@ public class RestClientKeycloakAdminClient implements KeycloakAdminClient {
     private static final String USER_REALM_ROLE_MAPPING_ENDPOINT =
             "/admin/realms/{realm}/users/{userId}/role-mappings/realm";
 
+    private static final String SEND_VERIFICATION_EMAIL_ENDPOINT =
+            "/admin/realms/{realm}/users/{userId}/send-verify-email";
+
     private final RestClient keycloakRestClient;
     private final KeycloakProperties properties;
     private final KeycloakTokenClient tokenClient;
@@ -56,6 +59,7 @@ public class RestClientKeycloakAdminClient implements KeycloakAdminClient {
                             uriBuilder
                                     .path(USERS_ENDPOINT)
                                     .queryParam("email", email)
+                                    .queryParam("exact", true)
                                     .build(properties.realm())
                     )
                     .headers(headers ->
@@ -229,27 +233,36 @@ public class RestClientKeycloakAdminClient implements KeycloakAdminClient {
     }
 
     @Override
-    public void deleteUser(String userId) {
+    public void sendVerificationEmail(String userId) {
 
         try {
 
             keycloakRestClient
-                    .delete()
+                    .put()
                     .uri(
-                            USERS_ENDPOINT + "/{userId}",
+                            SEND_VERIFICATION_EMAIL_ENDPOINT,
                             properties.realm(),
                             userId
                     )
                     .headers(headers ->
-                            headers.setBearerAuth(tokenClient.getAccessToken())
+                            headers.setBearerAuth(
+                                    tokenClient.getAccessToken()
+                            )
                     )
                     .retrieve()
                     .toBodilessEntity();
 
+        } catch (HttpServerErrorException | ResourceAccessException ex) {
+
+            throw new KeycloakUnavailableException(
+                    "Keycloak is unavailable while sending verification email.",
+                    ex
+            );
+
         } catch (RestClientException ex) {
 
-            throw new KeycloakUserDeletionException(
-                    "Failed to delete user from Keycloak.",
+            throw new KeycloakVerificationEmailException(
+                    "Failed to send Keycloak verification email.",
                     ex
             );
         }
