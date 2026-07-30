@@ -11,6 +11,8 @@ public record ClaimedOutboxEvent(
 
         @NonNull UUID id,
         @NonNull UUID claimId,
+        UUID previousClaimId,
+        boolean reclaimedExpiredClaim,
         long sequenceNumber,
         @NonNull String aggregateType,
         @NonNull String aggregateId,
@@ -23,6 +25,13 @@ public record ClaimedOutboxEvent(
 ) {
 
     public ClaimedOutboxEvent {
+
+        if (reclaimedExpiredClaim != (previousClaimId != null)) {
+
+            throw new IllegalArgumentException(
+                    "Previous outbox claim must be present only for a reclaimed expired claim."
+            );
+        }
 
         if (sequenceNumber <= 0) {
             throw new IllegalArgumentException(

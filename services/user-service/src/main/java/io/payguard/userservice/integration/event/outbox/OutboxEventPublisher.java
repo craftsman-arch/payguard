@@ -1,6 +1,5 @@
 package io.payguard.userservice.integration.event.outbox;
 
-import io.micrometer.core.instrument.MeterRegistry;
 import io.payguard.userservice.application.event.ClaimedOutboxEvent;
 import io.payguard.userservice.application.event.OutboxEventPublicationRepository;
 import io.payguard.userservice.application.id.IdGenerator;
@@ -39,7 +38,7 @@ public class OutboxEventPublisher {
     private final OutboxPublicationErrorSanitizer errorSanitizer;
     private final KafkaTemplate<String, String> kafkaTemplate;
     private final IdGenerator idGenerator;
-    private final MeterRegistry meterRegistry;
+    private final OutboxPublicationMetrics metrics;
 
     @Scheduled(
             fixedDelayString =
@@ -56,7 +55,31 @@ public class OutboxEventPublisher {
                         properties.batchSize()
                 );
 
-        events.forEach(this::publish);
+        events.forEach(event -> {
+            recordRecoveredExpiredClaim(event);
+            publish(event);
+        });
+    }
+
+    private void recordRecoveredExpiredClaim(
+            ClaimedOutboxEvent event
+    ) {
+
+        if (!event.reclaimedExpiredClaim()) {
+            return;
+        }
+
+        metrics.recordStaleClaimRecovered();
+
+        log.warn(
+                "Reclaimed expired outbox event [{}] claim [{}] with new claim [{}] for aggregate type [{}], aggregate [{}] and correlation [{}].",
+                event.id(),
+                event.previousClaimId(),
+                event.claimId(),
+                event.aggregateType(),
+                event.aggregateId(),
+                event.correlationId()
+        );
     }
 
     private void publish(ClaimedOutboxEvent event) {
@@ -136,32 +159,33 @@ public class OutboxEventPublisher {
 
         if (!updated) {
 
-            meterRegistry
-                    .counter(
-                            "outbox.publication.lost_claim"
-                    )
-                    .increment();
+            metrics.recordLostClaim();
 
             log.warn(
-                    "Kafka acknowledged outbox event [{}], but its claim [{}] is no longer owned by this publisher.",
+                    "Kafka acknowledged outbox event [{}] of type [{}] for aggregate type [{}] and aggregate [{}] on attempt [{}], but claim [{}] is no longer owned; correlation [{}].",
                     event.id(),
-                    event.claimId()
+                    event.eventType(),
+                    event.aggregateType(),
+                    event.aggregateId(),
+                    event.attempts() + 1,
+                    event.claimId(),
+                    event.correlationId()
             );
 
             return;
         }
 
-        meterRegistry
-                .counter(
-                        "outbox.publication.published"
-                )
-                .increment();
+        metrics.recordPublished();
 
         log.info(
-                "Published outbox event [{}] of type [{}] for aggregate [{}].",
+                "Published outbox event [{}] of type [{}] for aggregate type [{}] and aggregate [{}] with claim [{}] on attempt [{}]; correlation [{}].",
                 event.id(),
                 event.eventType(),
-                event.aggregateId()
+                event.aggregateType(),
+                event.aggregateId(),
+                event.claimId(),
+                event.attempts() + 1,
+                event.correlationId()
         );
     }
 
@@ -215,17 +239,19 @@ public class OutboxEventPublisher {
             return;
         }
 
-        meterRegistry
-                .counter(
-                        "outbox.publication.retry"
-                )
-                .increment();
+        metrics.recordConfirmedFailure();
+        metrics.recordRetry();
 
         log.warn(
-                "Failed to publish outbox event [{}] on attempt [{}]. Retrying after [{}].",
+                "Failed to publish outbox event [{}] of type [{}] for aggregate type [{}] and aggregate [{}] with claim [{}] on attempt [{}]; retrying after [{}], correlation [{}].",
                 event.id(),
+                event.eventType(),
+                event.aggregateType(),
+                event.aggregateId(),
+                event.claimId(),
                 failedAttempt,
                 retryBackoff,
+                event.correlationId(),
                 exception
         );
     }
@@ -251,16 +277,18 @@ public class OutboxEventPublisher {
             return;
         }
 
-        meterRegistry
-                .counter(
-                        "outbox.publication.failed"
-                )
-                .increment();
+        metrics.recordConfirmedFailure();
+        metrics.recordExhausted();
 
         log.error(
-                "Outbox event [{}] exhausted [{}] publication attempts and requires operational recovery.",
+                "Outbox event [{}] of type [{}] for aggregate type [{}] and aggregate [{}] exhausted [{}] publication attempts with claim [{}] and requires operational recovery; correlation [{}].",
                 event.id(),
+                event.eventType(),
+                event.aggregateType(),
+                event.aggregateId(),
                 properties.maxAttempts(),
+                event.claimId(),
+                event.correlationId(),
                 exception
         );
     }
@@ -270,16 +298,17 @@ public class OutboxEventPublisher {
             Exception exception
     ) {
 
-        meterRegistry
-                .counter(
-                        "outbox.publication.lost_claim"
-                )
-                .increment();
+        metrics.recordLostClaim();
 
         log.warn(
-                "Unable to record publication failure for outbox event [{}] because claim [{}] is no longer owned by this publisher.",
+                "Unable to record publication failure for outbox event [{}] of type [{}] for aggregate type [{}] and aggregate [{}] on attempt [{}] because claim [{}] is no longer owned; correlation [{}].",
                 event.id(),
+                event.eventType(),
+                event.aggregateType(),
+                event.aggregateId(),
+                event.attempts() + 1,
                 event.claimId(),
+                event.correlationId(),
                 exception
         );
     }
