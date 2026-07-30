@@ -10,7 +10,10 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 
 @Configuration
 @EnableScheduling
-@EnableConfigurationProperties(OutboxPublisherProperties.class)
+@EnableConfigurationProperties({
+        OutboxPublisherProperties.class,
+        OutboxObservabilityProperties.class
+})
 public class OutboxPublisherConfiguration {
 
     @Bean

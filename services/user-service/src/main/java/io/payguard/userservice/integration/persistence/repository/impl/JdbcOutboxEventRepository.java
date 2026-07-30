@@ -56,7 +56,14 @@ public class JdbcOutboxEventRepository
             WITH candidates AS (
                 SELECT
                     event.id,
-                    event.sequence_number
+                    event.sequence_number,
+                    event.claim_id
+                        AS previous_claim_id,
+                    (
+                        event.claim_id IS NOT NULL
+                        AND event.claimed_until
+                            <= CURRENT_TIMESTAMP
+                    ) AS reclaimed_expired_claim
                 FROM outbox_events event
                 WHERE event.published_at IS NULL
                   AND event.failed_at IS NULL
@@ -95,6 +102,8 @@ public class JdbcOutboxEventRepository
             RETURNING
                 event.id,
                 event.claim_id,
+                candidates.previous_claim_id,
+                candidates.reclaimed_expired_claim,
                 event.sequence_number,
                 event.aggregate_type,
                 event.aggregate_id,
@@ -191,6 +200,7 @@ public class JdbcOutboxEventRepository
             WHERE id = :eventId
               AND published_at IS NULL
               AND failed_at = :previousFailedAt
+            RETURNING id
             """;
 
     private final NamedParameterJdbcTemplate jdbcTemplate;
@@ -288,13 +298,13 @@ public class JdbcOutboxEventRepository
             UUID claimId
     ) {
 
-        return jdbcTemplate.update(
+        return updateClaimedEvent(
                 MARK_PUBLISHED,
                 ownershipParameters(
                         eventId,
                         claimId
                 )
-        ) == 1;
+        );
     }
 
     @Override
@@ -328,10 +338,10 @@ public class JdbcOutboxEventRepository
                                 lastError
                         );
 
-        return jdbcTemplate.update(
+        return updateClaimedEvent(
                 RESCHEDULE,
                 parameters
-        ) == 1;
+        );
     }
 
     @Override
@@ -352,10 +362,10 @@ public class JdbcOutboxEventRepository
                                 lastError
                         );
 
-        return jdbcTemplate.update(
+        return updateClaimedEvent(
                 MARK_FAILED,
                 parameters
-        ) == 1;
+        );
     }
 
     @Override
@@ -431,16 +441,11 @@ public class JdbcOutboxEventRepository
                 recoveryParameters
         );
 
-        int recoveredEvents = jdbcTemplate.update(
+        jdbcTemplate.queryForObject(
                 RECOVER_EVENT,
-                recoveryParameters
+                recoveryParameters,
+                UUID.class
         );
-
-        if (recoveredEvents != 1) {
-            throw new IllegalStateException(
-                    "Unable to recover locked outbox event."
-            );
-        }
 
         return OutboxEventRecoveryResult.RECOVERED;
     }
@@ -458,6 +463,13 @@ public class JdbcOutboxEventRepository
                 resultSet.getObject(
                         "claim_id",
                         UUID.class
+                ),
+                resultSet.getObject(
+                        "previous_claim_id",
+                        UUID.class
+                ),
+                resultSet.getBoolean(
+                        "reclaimed_expired_claim"
                 ),
                 resultSet.getLong(
                         "sequence_number"
@@ -517,6 +529,17 @@ public class JdbcOutboxEventRepository
         return new MapSqlParameterSource()
                 .addValue("eventId", eventId)
                 .addValue("claimId", claimId);
+    }
+
+    private boolean updateClaimedEvent(
+            String statement,
+            MapSqlParameterSource parameters
+    ) {
+
+        return jdbcTemplate.update(
+                statement,
+                parameters
+        ) == 1;
     }
 
     private record RecoverableOutboxEvent(

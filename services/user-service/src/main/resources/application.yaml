@@ -76,6 +76,10 @@ outbox:
     base-backoff: ${OUTBOX_PUBLISHER_BASE_BACKOFF:5s}
     max-backoff: ${OUTBOX_PUBLISHER_MAX_BACKOFF:15m}
     max-attempts: ${OUTBOX_PUBLISHER_MAX_ATTEMPTS:10}
+  observability:
+    enabled: ${OUTBOX_OBSERVABILITY_ENABLED:true}
+    refresh-interval: ${OUTBOX_OBSERVABILITY_REFRESH_INTERVAL:15s}
+    initial-delay: ${OUTBOX_OBSERVABILITY_INITIAL_DELAY:0s}
 
 springdoc:
   api-docs:

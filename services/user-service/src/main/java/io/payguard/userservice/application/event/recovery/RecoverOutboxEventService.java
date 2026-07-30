@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.UUID;
 
 @Slf4j
@@ -16,6 +17,7 @@ public class RecoverOutboxEventService {
 
     private final OutboxEventRecoveryRepository recoveryRepository;
     private final IdGenerator idGenerator;
+    private final List<OutboxEventRecoveryObserver> recoveryObservers;
 
     public RecoverOutboxEventResult execute(RecoverOutboxEventCommand command) {
 
@@ -63,6 +65,12 @@ public class RecoverOutboxEventService {
                 command.recoveredBy()
         );
 
-        return new RecoverOutboxEventResult(recoveryId, command.eventId());
+        RecoverOutboxEventResult result = new RecoverOutboxEventResult(recoveryId, command.eventId());
+
+        recoveryObservers.forEach(
+                observer -> observer.recovered(result)
+        );
+
+        return result;
     }
 }
