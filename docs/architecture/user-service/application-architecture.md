@@ -102,30 +102,43 @@ compare-and-set to PostgreSQL.
 
 ### Merchant registration
 
-The local Merchant registration transaction commits before external onboarding
-orchestration. Keycloak and Stripe resources are then provisioned, linked to the
-Merchant and saved with optimistic concurrency.
+Merchant registration is a staged, forward-recoverable process:
 
-The public React registration form supplies the merchant-selected password.
-User Service forwards it directly to Keycloak Admin API as a permanent
-credential; it does not store the password in the Merchant aggregate or any
-local persistence model. Keycloak owns password-policy validation, password
-hashing, email verification and OTP credentials.
+```text
+public Keycloak identity registration
+→ email verification and OTP
+→ Authorization Code with PKCE
+→ authenticated Merchant profile creation
+→ authenticated Stripe onboarding
+```
+
+Identity registration accepts email and the merchant-selected password. User
+Service forwards the password directly to Keycloak as a permanent credential;
+it does not store it in the Merchant aggregate or local persistence.
 
 New merchant identities are enabled with `emailVerified=false`, the `MERCHANT`
-realm role and the `VERIFY_EMAIL` and `CONFIGURE_TOTP` required actions.
-Registration does not issue authentication tokens. The merchant subsequently
-authenticates through the public `merchant-portal` client using Authorization
-Code with PKCE.
+realm role, the managed merchant-origin marker and the `VERIFY_EMAIL` and
+`CONFIGURE_TOTP` required actions. Identity registration creates no Merchant or
+Stripe resource and issues no authentication tokens.
+
+Merchant profile creation requires a verified authenticated `MERCHANT`.
+`identityUserId` and email come from trusted JWT claims; the browser supplies
+only business data. Repeating profile creation for the same identity returns
+the existing Merchant.
+
+Stripe account creation is a separate authenticated operation. It uses a
+stable Merchant-based idempotency key, persists the account ID before issuing
+an Account Link and reuses an already linked account.
 
 Provider failures are normalized at the web boundary: password-policy rejection
 is `422`, identity conflict is `409`, provider unavailability is `503`, and an
 unexpected identity-provider response is `502`. Original provider exceptions
 remain available in server-side logs.
 
-This flow currently uses best-effort compensation for external resources.
-Durable onboarding reconciliation, partial-registration recovery and concurrent
-registration control belong to the reliability scope.
+A valid Keycloak identity, a Merchant without a Stripe account and incomplete
+Stripe onboarding are legitimate intermediate states. Recovery continues
+forward; Stripe failure never automatically deletes a valid identity or
+Merchant.
 
 ### Stripe webhook
 
@@ -153,6 +166,23 @@ short transaction: claim bounded batch
 ```
 
 Publication is at least once. Consumers must deduplicate by event ID.
+
+Publisher replicas coordinate through PostgreSQL row-level locking,
+`FOR UPDATE SKIP LOCKED` and expiring claims. An exhausted head event blocks
+only its own aggregate. Administrative recovery re-enables the original event
+without changing its ID or aggregate ordering position.
+
+Operational gauges are refreshed from PostgreSQL on a schedule and cached in
+memory, so Prometheus scrapes do not query the database. Published outbox
+events, Stripe webhook deduplication records and outbox recovery audit records
+use configurable bounded retention.
+
+Housekeeping also uses `FOR UPDATE SKIP LOCKED`; ShedLock is intentionally not
+required because cleanup is idempotent, bounded and has no external side
+effect.
+
+Detailed recovery, metrics and retention procedures are documented in
+[`outbox-operations.md`](outbox-operations.md).
 
 ## Security boundaries
 

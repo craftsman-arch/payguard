@@ -39,6 +39,7 @@ and planned work are intentionally documented separately.
 - durable webhook deduplication;
 - optimistic Merchant concurrency through JPA revision checks;
 - transactional outbox and at-least-once Kafka publication;
+- exhausted-event recovery, outbox operational metrics and bounded retention;
 - protected internal payment-context API;
 - authorization-code flow with PKCE for the merchant browser client.
 
@@ -149,6 +150,7 @@ Consumers must implement idempotent processing by event ID.
 - [Merchant lifecycle](docs/architecture/user-service/merchant-lifecycle.md)
 - [Merchant registration](docs/architecture/user-service/registration-sequence.md)
 - [Stripe webhook processing](docs/architecture/user-service/webhook-processing-sequence.md)
+- [Transactional outbox operations](docs/architecture/user-service/outbox-operations.md)
 - [Merchant payment status Kafka contract](docs/contracts/kafka/merchant-payment-account-status-changed-v1.md)
 
 Architecture documents describe implemented behavior. Future scope and
