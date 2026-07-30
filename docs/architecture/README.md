@@ -9,6 +9,7 @@ Planned work belongs in the rebuild-plan documents rather than here.
 - [Merchant lifecycle](user-service/merchant-lifecycle.md)
 - [Merchant registration sequence](user-service/registration-sequence.md)
 - [Stripe webhook processing](user-service/webhook-processing-sequence.md)
+- [Transactional outbox operations](user-service/outbox-operations.md)
 - [Merchant payment status Kafka contract](../contracts/kafka/merchant-payment-account-status-changed-v1.md)
 
 ## Other services

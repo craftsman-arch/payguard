@@ -61,6 +61,8 @@ sequenceDiagram
    reloads state in a new transaction.
 9. Merchant state and outbox events commit atomically.
 10. Provider-specific requirements are normalized before leaving User Service.
+11. Processed Stripe event IDs are retained for 45 days by default and removed
+    in bounded housekeeping batches.
 
 ## Asynchronous publication
 
