@@ -44,11 +44,17 @@ keycloak:
   realm: ${KEYCLOAK_REALM:payguard}
   client-id: ${KEYCLOAK_CLIENT_ID:payguard-api}
   client-secret: ${KEYCLOAK_CLIENT_SECRET}
+  http-client:
+    connect-timeout: ${KEYCLOAK_CONNECT_TIMEOUT:2s}
+    read-timeout: ${KEYCLOAK_READ_TIMEOUT:5s}
 
 stripe:
   base-url: ${STRIPE_BASE_URL:https://api.stripe.com}
   secret-key: ${STRIPE_SECRET_KEY}
   webhook-secret: ${STRIPE_WEBHOOK_SECRET}
+  http-client:
+    connect-timeout: ${STRIPE_CONNECT_TIMEOUT:2s}
+    read-timeout: ${STRIPE_READ_TIMEOUT:10s}
 
   refresh-url: ${STRIPE_REFRESH_URL:http://localhost:5173/onboarding/retry}
   return-url: ${STRIPE_RETURN_URL:http://localhost:5173/onboarding/success}

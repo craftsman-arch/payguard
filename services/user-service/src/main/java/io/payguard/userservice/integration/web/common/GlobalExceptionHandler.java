@@ -15,6 +15,7 @@ import io.payguard.userservice.integration.identity.exception.KeycloakPasswordPo
 import io.payguard.userservice.integration.identity.exception.KeycloakUnavailableException;
 import io.payguard.userservice.integration.identity.exception.KeycloakUserConflictException;
 import io.payguard.userservice.integration.payment.error.exception.StripeProviderRejectedException;
+import io.payguard.userservice.integration.payment.error.exception.StripeProviderResponseException;
 import io.payguard.userservice.integration.payment.error.exception.StripeProviderUnavailableException;
 import io.payguard.userservice.integration.payment.error.exception.StripeSignatureVerificationException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -48,6 +49,9 @@ public class GlobalExceptionHandler {
 
     private static final String PAYMENT_PROVIDER_REJECTED_MESSAGE =
             "Payment provider rejected the request.";
+
+    private static final String PAYMENT_PROVIDER_ERROR_MESSAGE =
+            "Payment provider failed to process the request.";
 
     private static final String INVALID_WEBHOOK_SIGNATURE_MESSAGE =
             "Invalid webhook signature.";
@@ -214,6 +218,26 @@ public class GlobalExceptionHandler {
         return buildErrorResponse(
                 HttpStatus.UNPROCESSABLE_ENTITY,
                 PAYMENT_PROVIDER_REJECTED_MESSAGE,
+                request
+        );
+    }
+
+    @ExceptionHandler(StripeProviderResponseException.class)
+    public ResponseEntity<ErrorResponse> handleStripeProviderResponse(
+            StripeProviderResponseException exception,
+            HttpServletRequest request
+    ) {
+
+        log.error(
+                "Unexpected Stripe response while processing request [{} {}].",
+                request.getMethod(),
+                request.getRequestURI(),
+                exception
+        );
+
+        return buildErrorResponse(
+                HttpStatus.BAD_GATEWAY,
+                PAYMENT_PROVIDER_ERROR_MESSAGE,
                 request
         );
     }
