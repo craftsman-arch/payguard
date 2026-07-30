@@ -27,6 +27,8 @@ import java.net.URI;
 import java.util.List;
 import java.util.Optional;
 
+import static io.payguard.userservice.integration.http.TransientHttpStatusClassifier.isTransient;
+
 @Component
 @RequiredArgsConstructor
 public class RestClientKeycloakAdminClient implements KeycloakAdminClient {
@@ -81,10 +83,31 @@ public class RestClientKeycloakAdminClient implements KeycloakAdminClient {
 
             return Optional.of(users[0]);
 
+        } catch (HttpClientErrorException ex) {
+
+            if (isTransient(ex.getStatusCode())) {
+                throw new KeycloakUnavailableException(
+                        "Keycloak is temporarily unavailable while searching for a user.",
+                        ex
+                );
+            }
+
+            throw new KeycloakUserCreationException(
+                    "Keycloak rejected the user search request.",
+                    ex
+            );
+
+        } catch (HttpServerErrorException | ResourceAccessException ex) {
+
+            throw new KeycloakUnavailableException(
+                    "Keycloak is unavailable while searching for a user.",
+                    ex
+            );
+
         } catch (RestClientException ex) {
 
             throw new KeycloakUserCreationException(
-                    "Failed to search Keycloak user by email.",
+                    "Unable to process Keycloak user-search response.",
                     ex
             );
         }
@@ -135,6 +158,20 @@ public class RestClientKeycloakAdminClient implements KeycloakAdminClient {
 
             throw new KeycloakUserConflictException(
                     "A Keycloak user with the requested identity already exists.",
+                    ex
+            );
+
+        } catch (HttpClientErrorException ex) {
+
+            if (isTransient(ex.getStatusCode())) {
+                throw new KeycloakUnavailableException(
+                        "Keycloak is temporarily unavailable.",
+                        ex
+                );
+            }
+
+            throw new KeycloakUserCreationException(
+                    "Keycloak rejected the user creation request.",
                     ex
             );
 
@@ -194,6 +231,27 @@ public class RestClientKeycloakAdminClient implements KeycloakAdminClient {
                     .retrieve()
                     .toBodilessEntity();
 
+        } catch (HttpClientErrorException ex) {
+
+            if (isTransient(ex.getStatusCode())) {
+                throw new KeycloakUnavailableException(
+                        "Keycloak is temporarily unavailable while assigning a realm role.",
+                        ex
+                );
+            }
+
+            throw new KeycloakRoleAssignmentException(
+                    "Keycloak rejected realm role assignment.",
+                    ex
+            );
+
+        } catch (HttpServerErrorException | ResourceAccessException ex) {
+
+            throw new KeycloakUnavailableException(
+                    "Keycloak is unavailable while assigning a realm role.",
+                    ex
+            );
+
         } catch (RestClientException ex) {
 
             throw new KeycloakRoleAssignmentException(
@@ -251,6 +309,20 @@ public class RestClientKeycloakAdminClient implements KeycloakAdminClient {
                     )
                     .retrieve()
                     .toBodilessEntity();
+
+        } catch (HttpClientErrorException ex) {
+
+            if (isTransient(ex.getStatusCode())) {
+                throw new KeycloakUnavailableException(
+                        "Keycloak is temporarily unavailable while sending verification email.",
+                        ex
+                );
+            }
+
+            throw new KeycloakVerificationEmailException(
+                    "Keycloak rejected the verification-email request.",
+                    ex
+            );
 
         } catch (HttpServerErrorException | ResourceAccessException ex) {
 

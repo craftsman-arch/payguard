@@ -8,8 +8,8 @@ import io.payguard.userservice.integration.payment.account.dto.StripeAccountResp
 import io.payguard.userservice.integration.payment.config.StripeProperties;
 import io.payguard.userservice.integration.payment.error.dto.StripeError;
 import io.payguard.userservice.integration.payment.error.dto.StripeErrorResponse;
-import io.payguard.userservice.integration.payment.error.exception.StripeAccountCreationException;
 import io.payguard.userservice.integration.payment.error.exception.StripeProviderRejectedException;
+import io.payguard.userservice.integration.payment.error.exception.StripeProviderResponseException;
 import io.payguard.userservice.integration.payment.error.exception.StripeProviderUnavailableException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
@@ -17,11 +17,15 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.HttpServerErrorException;
+import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientException;
 
 import java.io.IOException;
 import java.util.Optional;
+
+import static io.payguard.userservice.integration.http.TransientHttpStatusClassifier.isTransient;
 
 @Component
 @RequiredArgsConstructor
@@ -61,7 +65,7 @@ public class RestClientStripeClient implements StripeClient {
                     || response.id() == null
                     || response.id().isBlank()) {
 
-                throw new StripeAccountCreationException(
+                throw new StripeProviderResponseException(
                         "Stripe did not return an account id."
                 );
             }
@@ -70,15 +74,29 @@ public class RestClientStripeClient implements StripeClient {
 
         } catch (HttpClientErrorException ex) {
 
+            if (isTransient(ex.getStatusCode())) {
+                throw new StripeProviderUnavailableException(
+                        "Stripe temporarily rejected account creation.",
+                        ex
+                );
+            }
+
             throw new StripeProviderRejectedException(
                     extractErrorMessage(ex),
                     ex
             );
 
-        } catch (RestClientException ex) {
+        } catch (HttpServerErrorException | ResourceAccessException ex) {
 
             throw new StripeProviderUnavailableException(
                     "Stripe is unavailable while creating an account.",
+                    ex
+            );
+
+        } catch (RestClientException ex) {
+
+            throw new StripeProviderResponseException(
+                    "Unable to process Stripe account-creation response.",
                     ex
             );
         }
@@ -114,7 +132,7 @@ public class RestClientStripeClient implements StripeClient {
                             );
 
             if (response == null) {
-                throw new StripeAccountCreationException(
+                throw new StripeProviderResponseException(
                         "Stripe returned an empty account link response."
                 );
             }
@@ -123,15 +141,29 @@ public class RestClientStripeClient implements StripeClient {
 
         } catch (HttpClientErrorException ex) {
 
+            if (isTransient(ex.getStatusCode())) {
+                throw new StripeProviderUnavailableException(
+                        "Stripe temporarily rejected onboarding-link creation.",
+                        ex
+                );
+            }
+
             throw new StripeProviderRejectedException(
                     extractErrorMessage(ex),
                     ex
             );
 
-        } catch (RestClientException ex) {
+        } catch (HttpServerErrorException | ResourceAccessException ex) {
 
             throw new StripeProviderUnavailableException(
                     "Stripe is unavailable while creating an onboarding link.",
+                    ex
+            );
+
+        } catch (RestClientException ex) {
+
+            throw new StripeProviderResponseException(
+                    "Unable to process Stripe onboarding-link response.",
                     ex
             );
         }
