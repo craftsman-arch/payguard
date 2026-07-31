@@ -1,6 +1,8 @@
 package io.payguard.apigateway.routing;
 
+import io.payguard.apigateway.ratelimit.RegistrationRateLimitFilter;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpMethod;
 import org.springframework.cloud.gateway.route.RouteLocator;
 import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder;
 import org.springframework.context.annotation.Bean;
@@ -11,6 +13,7 @@ import org.springframework.context.annotation.Configuration;
 public class RouteConfiguration {
 
     private final GatewayRoutesProperties properties;
+    private final RegistrationRateLimitFilter rateLimitFilter;
 
     @Bean
     public RouteLocator routeLocator(RouteLocatorBuilder builder) {
@@ -19,9 +22,15 @@ public class RouteConfiguration {
                 .route(
                         "merchant-identity-registration",
                         route -> route
+                                .method(HttpMethod.POST)
+                                .and()
                                 .path("/api/merchant-registrations")
-                                .filters(filter ->
-                                        filter.setPath(
+                                .filters(filter -> filter
+                                        .filter(
+                                                rateLimitFilter
+                                                        .identityRegistration()
+                                        )
+                                        .setPath(
                                                 "/api/v1/merchant-registrations"
                                         )
                                 )
@@ -32,11 +41,17 @@ public class RouteConfiguration {
                 .route(
                         "merchant-verification-email",
                         route -> route
+                                .method(HttpMethod.POST)
+                                .and()
                                 .path(
                                         "/api/merchant-registrations/verification-email"
                                 )
-                                .filters(filter ->
-                                        filter.setPath(
+                                .filters(filter -> filter
+                                        .filter(
+                                                rateLimitFilter
+                                                        .verificationEmail()
+                                        )
+                                        .setPath(
                                                 "/api/v1/merchant-registrations/verification-email"
                                         )
                                 )
