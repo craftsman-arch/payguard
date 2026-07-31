@@ -50,6 +50,23 @@ services:
     networks:
       - payguard-network
 
+  redis-insight:
+    image: redis/redisinsight:2.70
+    container_name: payguard-redis-insight
+
+    depends_on:
+      redis:
+        condition: service_healthy
+
+    ports:
+      - "5540:5540"
+
+    volumes:
+      - redis-insight-data:/data
+
+    networks:
+      - payguard-network
+
   kafka:
     image: apache/kafka:4.0.0
     container_name: payguard-kafka
@@ -277,6 +294,7 @@ services:
 
 volumes:
   postgres-data:
+  redis-insight-data:
   kafka-data:
   grafana-data:
   loki-data:
