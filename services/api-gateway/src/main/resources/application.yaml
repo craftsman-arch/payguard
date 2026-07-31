@@ -2,6 +2,13 @@ spring:
   application:
     name: api-gateway
 
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      connect-timeout: 2s
+      timeout: 2s
+
   lifecycle:
     timeout-per-shutdown-phase: 30s
 
@@ -23,6 +30,17 @@ spring:
           issuer-uri: ${KEYCLOAK_URL:http://localhost:8080}/realms/payguard
 
 gateway:
+  rate-limit:
+    registration:
+      identity:
+        replenish-rate: ${MERCHANT_REGISTRATION_REPLENISH_RATE:1}
+        burst-capacity: ${MERCHANT_REGISTRATION_BURST_CAPACITY:5}
+        requested-tokens: 1
+      verification-email:
+        replenish-rate: ${VERIFICATION_EMAIL_REPLENISH_RATE:1}
+        burst-capacity: ${VERIFICATION_EMAIL_BURST_CAPACITY:3}
+        requested-tokens: 1
+
   routes:
     user-service:
       uri: ${USER_SERVICE_URL:http://localhost:8081}
