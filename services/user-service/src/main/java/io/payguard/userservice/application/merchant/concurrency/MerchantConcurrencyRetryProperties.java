@@ -7,6 +7,8 @@ import org.springframework.validation.annotation.Validated;
 
 import java.time.Duration;
 
+import static io.payguard.userservice.common.validation.DurationPreconditions.requirePositive;
+
 @Validated
 @ConfigurationProperties(prefix = "merchant.concurrency-retry")
 public record MerchantConcurrencyRetryProperties(
@@ -24,31 +26,16 @@ public record MerchantConcurrencyRetryProperties(
 
     public MerchantConcurrencyRetryProperties {
 
-        if (minBackoff != null
-                && (
-                    minBackoff.isZero()
-                    || minBackoff.isNegative()
-                )) {
+        requirePositive(
+                minBackoff,
+                "Minimum concurrency retry backoff must be positive."
+        );
+        requirePositive(
+                maxBackoff,
+                "Maximum concurrency retry backoff must be positive."
+        );
 
-            throw new IllegalArgumentException(
-                    "Minimum concurrency retry backoff must be positive."
-            );
-        }
-
-        if (maxBackoff != null
-                && (
-                    maxBackoff.isZero()
-                    || maxBackoff.isNegative()
-                )) {
-
-            throw new IllegalArgumentException(
-                    "Maximum concurrency retry backoff must be positive."
-            );
-        }
-
-        if (minBackoff != null
-                && maxBackoff != null
-                && minBackoff.compareTo(maxBackoff) > 0) {
+        if (minBackoff.compareTo(maxBackoff) > 0) {
 
             throw new IllegalArgumentException(
                     "Minimum concurrency retry backoff must not exceed maximum backoff."

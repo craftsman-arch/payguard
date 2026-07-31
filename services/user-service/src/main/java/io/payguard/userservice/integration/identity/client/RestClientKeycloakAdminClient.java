@@ -13,6 +13,7 @@ import io.payguard.userservice.integration.identity.exception.KeycloakUserConfli
 import io.payguard.userservice.integration.identity.exception.KeycloakUserCreationException;
 import io.payguard.userservice.integration.identity.exception.KeycloakVerificationEmailException;
 import io.payguard.userservice.integration.identity.token.KeycloakTokenClient;
+import io.payguard.userservice.integration.resilience.ProviderCircuitBreakerExecutor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
@@ -49,9 +50,19 @@ public class RestClientKeycloakAdminClient implements KeycloakAdminClient {
     private final KeycloakProperties properties;
     private final KeycloakTokenClient tokenClient;
     private final ObjectMapper objectMapper;
+    private final ProviderCircuitBreakerExecutor circuitBreakerExecutor;
 
     @Override
     public Optional<KeycloakUser> findByEmail(String email) {
+
+        String accessToken = tokenClient.getAccessToken();
+
+        return circuitBreakerExecutor.executeKeycloakAdmin(
+                () -> findByEmail(email, accessToken)
+        );
+    }
+
+    private Optional<KeycloakUser> findByEmail(String email, String accessToken) {
 
         try {
 
@@ -65,7 +76,7 @@ public class RestClientKeycloakAdminClient implements KeycloakAdminClient {
                                     .build(properties.realm())
                     )
                     .headers(headers ->
-                            headers.setBearerAuth(tokenClient.getAccessToken())
+                            headers.setBearerAuth(accessToken)
                     )
                     .retrieve()
                     .body(KeycloakUser[].class);
@@ -116,13 +127,22 @@ public class RestClientKeycloakAdminClient implements KeycloakAdminClient {
     @Override
     public String createUser(KeycloakCreateUserRequest request) {
 
+        String accessToken = tokenClient.getAccessToken();
+
+        return circuitBreakerExecutor.executeKeycloakAdmin(
+                () -> createUser(request, accessToken)
+        );
+    }
+
+    private String createUser(KeycloakCreateUserRequest request, String accessToken) {
+
         try {
 
             ResponseEntity<Void> response = keycloakRestClient
                     .post()
                     .uri(USERS_ENDPOINT, properties.realm())
                     .headers(headers ->
-                            headers.setBearerAuth(tokenClient.getAccessToken())
+                            headers.setBearerAuth(accessToken)
                     )
                     .body(request)
                     .retrieve()
@@ -212,9 +232,25 @@ public class RestClientKeycloakAdminClient implements KeycloakAdminClient {
     @Override
     public void assignRealmRole(String userId, String roleName) {
 
+        String accessToken = tokenClient.getAccessToken();
+
+        circuitBreakerExecutor.executeKeycloakAdmin(
+                () -> assignRealmRole(
+                        userId,
+                        roleName,
+                        accessToken
+                )
+        );
+    }
+
+    private void assignRealmRole(String userId, String roleName, String accessToken) {
+
         try {
 
-            KeycloakRoleRepresentation role = findRealmRole(roleName);
+            KeycloakRoleRepresentation role = findRealmRole(
+                    roleName,
+                    accessToken
+            );
             keycloakRestClient
                     .post()
                     .uri(
@@ -224,7 +260,7 @@ public class RestClientKeycloakAdminClient implements KeycloakAdminClient {
                     )
                     .headers(headers ->
                             headers.setBearerAuth(
-                                    tokenClient.getAccessToken()
+                                    accessToken
                             )
                     )
                     .body(List.of(role))
@@ -262,7 +298,7 @@ public class RestClientKeycloakAdminClient implements KeycloakAdminClient {
         }
     }
 
-    private KeycloakRoleRepresentation findRealmRole(String roleName) {
+    private KeycloakRoleRepresentation findRealmRole(String roleName, String accessToken) {
 
         KeycloakRoleRepresentation role =
                 keycloakRestClient
@@ -274,7 +310,7 @@ public class RestClientKeycloakAdminClient implements KeycloakAdminClient {
                         )
                         .headers(headers ->
                                 headers.setBearerAuth(
-                                        tokenClient.getAccessToken()
+                                        accessToken
                                 )
                         )
                         .retrieve()
@@ -293,6 +329,18 @@ public class RestClientKeycloakAdminClient implements KeycloakAdminClient {
     @Override
     public void sendVerificationEmail(String userId) {
 
+        String accessToken = tokenClient.getAccessToken();
+
+        circuitBreakerExecutor.executeKeycloakAdmin(
+                () -> sendVerificationEmail(
+                        userId,
+                        accessToken
+                )
+        );
+    }
+
+    private void sendVerificationEmail(String userId, String accessToken) {
+
         try {
 
             keycloakRestClient
@@ -302,11 +350,7 @@ public class RestClientKeycloakAdminClient implements KeycloakAdminClient {
                             properties.realm(),
                             userId
                     )
-                    .headers(headers ->
-                            headers.setBearerAuth(
-                                    tokenClient.getAccessToken()
-                            )
-                    )
+                    .headers(headers -> headers.setBearerAuth(accessToken))
                     .retrieve()
                     .toBodilessEntity();
 

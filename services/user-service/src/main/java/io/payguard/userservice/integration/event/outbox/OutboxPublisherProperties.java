@@ -5,6 +5,8 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 
 import java.time.Duration;
 
+import static io.payguard.userservice.common.validation.DurationPreconditions.requirePositive;
+import static io.payguard.userservice.common.validation.NumberPreconditions.requirePositive;
 import static io.payguard.userservice.common.validation.TextPreconditions.requireText;
 
 @ConfigurationProperties(prefix = "outbox.publisher")
@@ -92,23 +94,4 @@ public record OutboxPublisherProperties(
         }
     }
 
-    private static void requirePositive(
-            int value,
-            String message
-    ) {
-
-        if (value <= 0) {
-            throw new IllegalArgumentException(message);
-        }
-    }
-
-    private static void requirePositive(
-            Duration value,
-            String message
-    ) {
-
-        if (value.isZero() || value.isNegative()) {
-            throw new IllegalArgumentException(message);
-        }
-    }
 }

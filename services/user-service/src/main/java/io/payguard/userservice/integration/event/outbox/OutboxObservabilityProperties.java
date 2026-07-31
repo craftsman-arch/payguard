@@ -5,6 +5,9 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 
 import java.time.Duration;
 
+import static io.payguard.userservice.common.validation.DurationPreconditions.requireNotNegative;
+import static io.payguard.userservice.common.validation.DurationPreconditions.requirePositive;
+
 @ConfigurationProperties(prefix = "outbox.observability")
 public record OutboxObservabilityProperties(
 
@@ -16,17 +19,13 @@ public record OutboxObservabilityProperties(
 
     public OutboxObservabilityProperties {
 
-        if (refreshInterval.isZero() || refreshInterval.isNegative()) {
-
-            throw new IllegalArgumentException(
-                    "Outbox observability refresh interval must be positive."
-            );
-        }
-
-        if (initialDelay.isNegative()) {
-            throw new IllegalArgumentException(
-                    "Outbox observability initial delay must not be negative."
-            );
-        }
+        requirePositive(
+                refreshInterval,
+                "Outbox observability refresh interval must be positive."
+        );
+        requireNotNegative(
+                initialDelay,
+                "Outbox observability initial delay must not be negative."
+        );
     }
 }

@@ -6,6 +6,8 @@ import org.springframework.validation.annotation.Validated;
 
 import java.time.Duration;
 
+import static io.payguard.userservice.common.validation.DurationPreconditions.requirePositive;
+
 @Validated
 @ConfigurationProperties(prefix = "payment-provider.account-creation")
 public record PaymentAccountCreationProperties(
@@ -16,15 +18,9 @@ public record PaymentAccountCreationProperties(
 
     public PaymentAccountCreationProperties {
 
-        if (idempotencySafetyWindow != null
-                && (
-                    idempotencySafetyWindow.isZero()
-                    || idempotencySafetyWindow.isNegative()
-                )) {
-
-            throw new IllegalArgumentException(
-                    "Stripe idempotency safety window must be positive."
-            );
-        }
+        requirePositive(
+                idempotencySafetyWindow,
+                "Stripe idempotency safety window must be positive."
+        );
     }
 }
