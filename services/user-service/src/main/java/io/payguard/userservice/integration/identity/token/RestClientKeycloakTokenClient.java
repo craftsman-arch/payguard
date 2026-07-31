@@ -3,6 +3,7 @@ package io.payguard.userservice.integration.identity.token;
 import io.payguard.userservice.integration.identity.KeycloakProperties;
 import io.payguard.userservice.integration.identity.exception.KeycloakAuthenticationException;
 import io.payguard.userservice.integration.identity.exception.KeycloakUnavailableException;
+import io.payguard.userservice.integration.resilience.ProviderCircuitBreakerExecutor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
@@ -25,9 +26,15 @@ public class RestClientKeycloakTokenClient implements KeycloakTokenClient {
 
     private final RestClient keycloakRestClient;
     private final KeycloakProperties properties;
+    private final ProviderCircuitBreakerExecutor circuitBreakerExecutor;
 
     @Override
     public String getAccessToken() {
+
+        return circuitBreakerExecutor.executeKeycloakToken(this::requestAccessToken);
+    }
+
+    private String requestAccessToken() {
 
         MultiValueMap<String, String> form = new LinkedMultiValueMap<>();
         form.add("grant_type", "client_credentials");

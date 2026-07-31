@@ -63,6 +63,19 @@ payment-provider:
   account-creation:
     idempotency-safety-window: ${STRIPE_ACCOUNT_IDEMPOTENCY_SAFETY_WINDOW:23h}
 
+provider-resilience:
+  circuit-breaker:
+    sliding-window-size: ${PROVIDER_CB_SLIDING_WINDOW_SIZE:20}
+    minimum-number-of-calls: ${PROVIDER_CB_MINIMUM_NUMBER_OF_CALLS:10}
+    failure-rate-threshold: ${PROVIDER_CB_FAILURE_RATE_THRESHOLD:50}
+    slow-call-rate-threshold: ${PROVIDER_CB_SLOW_CALL_RATE_THRESHOLD:50}
+    permitted-calls-in-half-open-state: ${PROVIDER_CB_HALF_OPEN_CALLS:3}
+    wait-duration-in-open-state: ${PROVIDER_CB_OPEN_WAIT_DURATION:30s}
+    automatic-transition-from-open-to-half-open-enabled: true
+    keycloak-token-slow-call-duration: ${KEYCLOAK_TOKEN_SLOW_CALL_DURATION:3s}
+    keycloak-admin-slow-call-duration: ${KEYCLOAK_ADMIN_SLOW_CALL_DURATION:4s}
+    stripe-api-slow-call-duration: ${STRIPE_API_SLOW_CALL_DURATION:8s}
+
 merchant:
   concurrency-retry:
     max-attempts: ${MERCHANT_CONCURRENCY_MAX_ATTEMPTS:3}

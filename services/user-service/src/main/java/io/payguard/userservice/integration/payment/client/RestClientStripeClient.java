@@ -11,6 +11,7 @@ import io.payguard.userservice.integration.payment.error.dto.StripeErrorResponse
 import io.payguard.userservice.integration.payment.error.exception.StripeProviderRejectedException;
 import io.payguard.userservice.integration.payment.error.exception.StripeProviderResponseException;
 import io.payguard.userservice.integration.payment.error.exception.StripeProviderUnavailableException;
+import io.payguard.userservice.integration.resilience.ProviderCircuitBreakerExecutor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
@@ -37,9 +38,20 @@ public class RestClientStripeClient implements StripeClient {
     private final RestClient stripeRestClient;
     private final StripeProperties properties;
     private final ObjectMapper objectMapper;
+    private final ProviderCircuitBreakerExecutor circuitBreakerExecutor;
 
     @Override
     public String createAccount(StripeAccountRequest request, String idempotencyKey) {
+
+        return circuitBreakerExecutor.executeStripe(
+                () -> createAccountThroughProvider(
+                        request,
+                        idempotencyKey
+                )
+        );
+    }
+
+    private String createAccountThroughProvider(StripeAccountRequest request, String idempotencyKey) {
 
         try {
 
@@ -104,6 +116,11 @@ public class RestClientStripeClient implements StripeClient {
 
     @Override
     public String createAccountLink(StripeAccountLinkRequest request) {
+
+        return circuitBreakerExecutor.executeStripe(() -> createAccountLinkThroughProvider(request));
+    }
+
+    private String createAccountLinkThroughProvider(StripeAccountLinkRequest request) {
 
         MultiValueMap<String, String> form = new LinkedMultiValueMap<>();
         form.add("account", request.account());

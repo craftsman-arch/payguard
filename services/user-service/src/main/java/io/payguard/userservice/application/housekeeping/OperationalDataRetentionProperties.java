@@ -6,6 +6,8 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import java.time.Duration;
 import java.time.ZoneId;
 
+import static io.payguard.userservice.common.validation.DurationPreconditions.requirePositive;
+import static io.payguard.userservice.common.validation.NumberPreconditions.requirePositive;
 import static io.payguard.userservice.common.validation.TextPreconditions.requireText;
 
 @ConfigurationProperties(prefix = "housekeeping.retention")
@@ -38,11 +40,10 @@ public record OperationalDataRetentionProperties(
                 "Outbox event recovery retention must be positive."
         );
 
-        if (batchSize <= 0) {
-            throw new IllegalArgumentException(
-                    "Operational retention batch size must be positive."
-            );
-        }
+        requirePositive(
+                batchSize,
+                "Operational retention batch size must be positive."
+        );
 
         requireText(
                 cron,
@@ -57,10 +58,4 @@ public record OperationalDataRetentionProperties(
         ZoneId.of(zone);
     }
 
-    private static void requirePositive(Duration value, String message) {
-
-        if (value.isZero() || value.isNegative()) {
-            throw new IllegalArgumentException(message);
-        }
-    }
 }
