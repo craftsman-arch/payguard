@@ -1,32 +1,38 @@
 # PayGuard
 
-PayGuard is a payment backend for an online marketplace where independent
-merchants sell goods or services to buyers. It connects merchants to Stripe,
-checks whether they are allowed to accept payments, coordinates payment and
-risk decisions, and provides the operational records needed for notifications
-and reconciliation.
+PayGuard is a protected-transaction platform for people and businesses that
+need to exchange money after agreed conditions have been satisfied. A user may
+fund one deal as its payer and receive funds in another as its payee. Payments
+are collected through a hosted payment-provider experience, held from release
+while the deal is in progress, and released or refunded after fulfilment,
+acceptance or dispute resolution.
 
-The project is organized as independently deployable services with explicit
-ownership of identity and merchant data, payments, fraud analysis,
-notifications and reconciliation. The currently implemented flow covers
-merchant registration, Stripe Connect onboarding and payment eligibility.
-Payment processing is the next active implementation phase.
+The platform is organized as independently deployable services with explicit
+ownership of users, protected deals, financial operations and fraud decisions.
+Stripe is the first payment provider. PayGuard does not collect raw card data
+and does not claim to provide a regulated escrow account; the product model is
+described as protected deals with conditional settlement.
+
+PayGuard was initially designed as the payment component of a marketplace
+ecosystem. Its first completed vertical slice therefore implements merchant
+registration, Stripe Connect onboarding and payment eligibility. Further
+domain analysis showed that the same financial and risk boundaries can support
+a broader protected-transaction product in which users may participate as
+either payer or payee. The next phase generalizes the original Merchant model
+into platform users with optional settlement accounts before Deal, Payment and
+Fraud services are implemented against the new boundaries.
 
 ## Service status
 
 | Service | Status | Responsibility |
 |---|---|---|
-| API Gateway | Implemented | Public routing, JWT enforcement, CORS, correlation IDs and Redis-backed limits for public registration endpoints |
-| User Service | Implemented | Merchant identity and profile, Stripe Connect onboarding, payment eligibility and merchant lifecycle events |
-| Payment Service | In development | Payment lifecycle, trusted merchant resolution, risk authorization, Stripe payment execution, refunds and payment history |
-| Fraud Engine | Planned | Risk evaluation and explainable payment decisions; it does not own payment state |
-| Notification Service | Planned | Email and other user-facing notifications driven by integration events |
-| Reconciliation Service | Planned | Comparison of PayGuard records with provider settlements, discrepancies and operational follow-up |
-
-PayGuard is not the marketplace storefront and does not manage buyer profiles,
-catalogues or orders. The marketplace backend authenticates the buyer and sends
-PayGuard a buyer reference together with the checkout context required to
-process a payment.
+| API Gateway | Implemented; evolution planned | Public routing, JWT enforcement, CORS, correlation IDs and Redis-backed abuse protection |
+| User Service | Implemented; refactoring planned | Current merchant identity and Stripe Connect lifecycle; evolving to platform users with optional settlement accounts |
+| Deal Service | Planned | Offers, participants, fulfilment, cancellation, disputes and business authority to release or refund |
+| Payment Service | Planned | Deal funding, hosted Checkout, provider webhooks, conditional settlement, refunds and financial history |
+| Fraud Engine | Planned | Explainable risk decisions for payment initiation and settlement release |
+| Notification Service | TBD | Omnichannel delivery of payment links and lifecycle notifications |
+| Reconciliation Service | TBD | Provider comparison, discrepancy detection and controlled recovery workflows |
 
 ## Repository structure
 
@@ -34,6 +40,7 @@ process a payment.
 services/
   api-gateway/
   user-service/
+  deal-service/            Planned
   payment-service/
   notification-service/
   reconciliation-service/
@@ -44,7 +51,7 @@ libs/
   event-contracts/
 
 docker/        Local infrastructure configuration
-docs/          Implemented architecture and public contracts
+docs/          Implemented architecture, public contracts and explicit plans
 infra/         Helm and Terraform assets
 ```
 
@@ -68,6 +75,8 @@ the final integration phase, after the core services have been implemented.
 
 - [Local development](docs/local-development.md)
 - [Architecture overview](docs/architecture/README.md)
+- [Protected-transactions build plan](docs/plans/protected-transactions/README.md)
+- [Planned service boundaries](docs/plans/protected-transactions/service-boundaries.md)
 - [User Service application architecture](docs/architecture/user-service/application-architecture.md)
 - [Merchant lifecycle](docs/architecture/user-service/merchant-lifecycle.md)
 - [Merchant registration](docs/architecture/user-service/registration-sequence.md)
