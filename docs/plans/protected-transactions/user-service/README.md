@@ -32,6 +32,13 @@ identity, Stripe Connect, webhook, outbox and operational reliability work.
   owned entity with independent lifecycle invariants.
 - A user may exist and fund deals without a settlement account.
 - Opening a settlement account starts Stripe Connect onboarding.
+- Keep onboarding provider-hosted or provider-embedded. Country, business-type,
+  capability, risk and verification requirements change over time and must not
+  be reproduced as a static PayGuard form or domain contract.
+- Store only the normalized settlement-account status, eligibility,
+  capabilities and required action needed by PayGuard. Keep raw
+  provider-specific KYC/KYB fields and document requirements at the provider
+  boundary.
 - Preserve signed webhook verification, durable deduplication, stale-event
   handling and provider-neutral normalization.
 - Preserve optimistic concurrency and atomic outbox persistence.

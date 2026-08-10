@@ -13,6 +13,11 @@ A PayGuard user may be the payer in one deal and the payee in another. Payer
 and payee are therefore deal-scoped roles rather than permanent identity-provider
 roles.
 
+PayGuard supports C2C/P2P commerce: one user pays another for a specific good
+or service governed by a protected deal. It does not provide general-purpose
+peer-to-peer money transmission, stored-value wallets or transfers without an
+underlying commercial agreement.
+
 PayGuard protects the financial part of an agreement:
 
 ```text
@@ -24,6 +29,32 @@ offer -> acceptance -> funding -> delivery -> acceptance or dispute
 
 PayGuard does not claim to provide a regulated escrow account. Product and
 technical documentation use `protected deal` and `conditional settlement`.
+
+## Market rollout
+
+PayGuard is deployed market by market. A country is enabled only after its
+currencies, provider capabilities, settlement routes, identity requirements,
+payment methods, transaction limits and regulatory assumptions have been
+explicitly configured.
+
+```text
+MVP:
+GB + GBP + cards + domestic deals
+
+Expansion 1:
+IE + EUR + cards + UK/EEA routing
+
+Expansion 2:
+NL + EUR + iDEAL
+
+Expansion 3:
+AU + AUD + isolated provider region
+```
+
+The rollout is intentionally evolutionary. Ireland introduces a new currency
+and cross-region routing, the Netherlands adds an asynchronous local payment
+method, and Australia requires an isolated provider region. Availability in a
+provider's country list alone is not sufficient to enable a PayGuard market.
 
 ## Service map
 
