@@ -1,5 +1,9 @@
 # PayGuard
 
+<p align="center">
+  <img src="./payguard-logo.png" alt="PayGuard logo" width="240">
+</p>
+
 PayGuard is a protected-transaction platform for people and businesses that
 need to exchange money after agreed conditions have been satisfied. A user may
 fund one deal as its payer and receive funds in another as its payee. Payments
