@@ -63,7 +63,7 @@ public class GlobalExceptionHandler {
             "Identity provider failed to process the request.";
 
     private static final String IDENTITY_ALREADY_EXISTS_MESSAGE =
-            "Merchant identity already exists.";
+            "User identity already exists.";
 
     private static final String PASSWORD_POLICY_REJECTED_MESSAGE =
             "Password does not satisfy the security policy.";
