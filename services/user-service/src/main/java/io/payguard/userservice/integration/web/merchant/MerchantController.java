@@ -90,14 +90,14 @@ public class MerchantController {
             ),
             @ApiResponse(
                     responseCode = "403",
-                    description = "MERCHANT role or verified email is missing.",
+                    description = "USER role or verified email is missing.",
                     content = @Content(
                             schema = @Schema(implementation = ErrorResponse.class)
                     )
             )
     })
     @PostMapping
-    @PreAuthorize("hasRole('MERCHANT')")
+    @PreAuthorize("hasRole('USER')")
     public ResponseEntity<CreateMerchantProfileResponse> createProfile(
             @Valid @RequestBody CreateMerchantProfileRequest request
     ) {
@@ -173,7 +173,7 @@ public class MerchantController {
             )
     })
     @GetMapping("/me")
-    @PreAuthorize("hasRole('MERCHANT')")
+    @PreAuthorize("hasRole('USER')")
     @ResponseStatus(HttpStatus.OK)
     public CurrentMerchantResponse currentMerchant() {
 
@@ -213,7 +213,7 @@ public class MerchantController {
             ),
             @ApiResponse(
                     responseCode = "403",
-                    description = "Authenticated user does not have the MERCHANT role.",
+                    description = "Authenticated identity does not have the USER role.",
                     content = @Content(
                             schema = @Schema(implementation = ErrorResponse.class)
                     )
@@ -248,7 +248,7 @@ public class MerchantController {
             )
     })
     @PostMapping("/me/payment-account/onboarding")
-    @PreAuthorize("hasRole('MERCHANT')")
+    @PreAuthorize("hasRole('USER')")
     @ResponseStatus(HttpStatus.OK)
     public MerchantOnboardingLinkResponse startPaymentOnboarding() {
 
@@ -292,7 +292,7 @@ public class MerchantController {
             ),
             @ApiResponse(
                     responseCode = "403",
-                    description = "Authenticated user does not have the MERCHANT role.",
+                    description = "Authenticated identity does not have the USER role.",
                     content = @Content(
                             mediaType = "application/json",
                             schema = @Schema(implementation = ErrorResponse.class)
@@ -324,7 +324,7 @@ public class MerchantController {
             )
     })
     @PostMapping("/me/payment-account/onboarding-link")
-    @PreAuthorize("hasRole('MERCHANT')")
+    @PreAuthorize("hasRole('USER')")
     @ResponseStatus(HttpStatus.OK)
     public MerchantOnboardingLinkResponse createOnboardingLink() {
 

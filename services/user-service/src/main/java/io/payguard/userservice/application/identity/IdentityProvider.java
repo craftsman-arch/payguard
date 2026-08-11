@@ -10,6 +10,6 @@ public interface IdentityProvider {
 
     void sendVerificationEmail(String identityUserId);
 
-    void resumeMerchantIdentityRegistration(Email email);
+    void resumeUserIdentityRegistration(Email email);
 
 }

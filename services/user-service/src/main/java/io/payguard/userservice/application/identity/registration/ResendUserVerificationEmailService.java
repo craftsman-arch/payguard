@@ -6,13 +6,13 @@ import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
-public class ResendMerchantVerificationEmailService {
+public class ResendUserVerificationEmailService {
 
     private final IdentityProvider identityProvider;
 
-    public void execute(ResendMerchantVerificationEmailCommand command) {
+    public void execute(ResendUserVerificationEmailCommand command) {
 
-        identityProvider.resumeMerchantIdentityRegistration(
+        identityProvider.resumeUserIdentityRegistration(
                 command.email()
         );
     }

@@ -2,8 +2,8 @@ package io.payguard.userservice.integration.web.identity.response;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
-@Schema(description = "Merchant identity registration result.")
-public record RegisterMerchantIdentityResponse(
+@Schema(description = "User identity registration result.")
+public record RegisterUserIdentityResponse(
 
         @Schema(
                 description = "Next registration state.",
@@ -13,9 +13,9 @@ public record RegisterMerchantIdentityResponse(
 
 ) {
 
-    public static RegisterMerchantIdentityResponse pendingVerification() {
+    public static RegisterUserIdentityResponse pendingVerification() {
 
-        return new RegisterMerchantIdentityResponse(
+        return new RegisterUserIdentityResponse(
                 "PENDING_VERIFICATION"
         );
     }

@@ -1,16 +1,16 @@
 package io.payguard.userservice.integration.web.identity;
 
-import io.payguard.userservice.application.identity.registration.RegisterMerchantIdentityCommand;
-import io.payguard.userservice.application.identity.registration.RegisterMerchantIdentityService;
-import io.payguard.userservice.application.identity.registration.ResendMerchantVerificationEmailCommand;
-import io.payguard.userservice.application.identity.registration.ResendMerchantVerificationEmailService;
+import io.payguard.userservice.application.identity.registration.RegisterUserIdentityCommand;
+import io.payguard.userservice.application.identity.registration.RegisterUserIdentityService;
+import io.payguard.userservice.application.identity.registration.ResendUserVerificationEmailCommand;
+import io.payguard.userservice.application.identity.registration.ResendUserVerificationEmailService;
 import io.payguard.userservice.domain.merchant.value.Email;
 import io.payguard.userservice.integration.web.common.ErrorResponse;
 import io.payguard.userservice.integration.web.common.ValidationErrorResponse;
-import io.payguard.userservice.integration.web.identity.request.RegisterMerchantIdentityRequest;
-import io.payguard.userservice.integration.web.identity.request.ResendMerchantVerificationEmailRequest;
-import io.payguard.userservice.integration.web.identity.response.RegisterMerchantIdentityResponse;
-import io.payguard.userservice.integration.web.identity.response.ResendMerchantVerificationEmailResponse;
+import io.payguard.userservice.integration.web.identity.request.RegisterUserIdentityRequest;
+import io.payguard.userservice.integration.web.identity.request.ResendUserVerificationEmailRequest;
+import io.payguard.userservice.integration.web.identity.response.RegisterUserIdentityResponse;
+import io.payguard.userservice.integration.web.identity.response.ResendUserVerificationEmailResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -27,27 +27,26 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/api/v1/merchant-registrations")
+@RequestMapping("/api/v1/user-registrations")
 @RequiredArgsConstructor
 @Tag(
-        name = "Merchant registration",
-        description = "Public merchant identity registration."
+        name = "User registration",
+        description = "Public PayGuard user identity registration."
 )
-public class MerchantIdentityRegistrationController {
+public class UserIdentityRegistrationController {
 
-    private final RegisterMerchantIdentityService registrationService;
-    private final ResendMerchantVerificationEmailService resendVerificationEmailService;
+    private final RegisterUserIdentityService registrationService;
+    private final ResendUserVerificationEmailService resendVerificationEmailService;
 
     @Operation(
-            summary = "Register merchant identity",
+            summary = "Register user identity",
             description = """
                     Creates a Keycloak identity with a permanent password,
-                    assigns the MERCHANT role and starts email verification
+                    assigns the USER role and starts email verification
                     and OTP configuration.
 
-                    This operation does not create a Merchant profile or a
-                    Stripe Connected Account and does not issue authentication
-                    tokens.
+                    This operation does not create a PayGuard user profile or
+                    settlement account and does not issue authentication tokens.
                     """
     )
     @ApiResponses({
@@ -58,7 +57,7 @@ public class MerchantIdentityRegistrationController {
                             mediaType = "application/json",
                             schema = @Schema(
                                     implementation =
-                                            RegisterMerchantIdentityResponse.class
+                                            RegisterUserIdentityResponse.class
                             )
                     )
             ),
@@ -110,22 +109,22 @@ public class MerchantIdentityRegistrationController {
     })
     @PostMapping
     @ResponseStatus(HttpStatus.ACCEPTED)
-    public RegisterMerchantIdentityResponse register(
-            @Valid @RequestBody RegisterMerchantIdentityRequest request
+    public RegisterUserIdentityResponse register(
+            @Valid @RequestBody RegisterUserIdentityRequest request
     ) {
 
         registrationService.execute(
-                new RegisterMerchantIdentityCommand(
+                new RegisterUserIdentityCommand(
                         Email.of(request.email()),
                         request.password()
                 )
         );
 
-        return RegisterMerchantIdentityResponse.pendingVerification();
+        return RegisterUserIdentityResponse.pendingVerification();
     }
 
     @Operation(
-            summary = "Resend merchant verification email",
+            summary = "Resend user verification email",
             description = """
                     Requests another verification email. The response is
                     intentionally identical whether or not the email belongs
@@ -140,7 +139,7 @@ public class MerchantIdentityRegistrationController {
                             mediaType = "application/json",
                             schema = @Schema(
                                     implementation =
-                                            ResendMerchantVerificationEmailResponse.class
+                                            ResendUserVerificationEmailResponse.class
                             )
                     )
             ),
@@ -163,17 +162,17 @@ public class MerchantIdentityRegistrationController {
     })
     @PostMapping("/verification-email")
     @ResponseStatus(HttpStatus.ACCEPTED)
-    public ResendMerchantVerificationEmailResponse resendVerificationEmail(
+    public ResendUserVerificationEmailResponse resendVerificationEmail(
             @Valid @RequestBody
-            ResendMerchantVerificationEmailRequest request
+            ResendUserVerificationEmailRequest request
     ) {
 
         resendVerificationEmailService.execute(
-                new ResendMerchantVerificationEmailCommand(
+                new ResendUserVerificationEmailCommand(
                         Email.of(request.email())
                 )
         );
 
-        return ResendMerchantVerificationEmailResponse.requested();
+        return ResendUserVerificationEmailResponse.requested();
     }
 }

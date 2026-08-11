@@ -41,8 +41,8 @@ public class SecurityConfiguration {
 
                         .pathMatchers(
                                 HttpMethod.POST,
-                                "/api/merchant-registrations",
-                                "/api/merchant-registrations/verification-email",
+                                "/api/user-registrations",
+                                "/api/user-registrations/verification-email",
                                 "/api/webhooks/stripe"
                         )
                         .permitAll()

@@ -14,7 +14,8 @@ import java.util.List;
 import java.util.Map;
 
 import static io.payguard.userservice.integration.identity.KeycloakIdentityOrigin.ATTRIBUTE;
-import static io.payguard.userservice.integration.identity.KeycloakIdentityOrigin.MERCHANT_SELF_REGISTRATION;
+import static io.payguard.userservice.integration.identity.KeycloakIdentityOrigin.LEGACY_MERCHANT_SELF_REGISTRATION;
+import static io.payguard.userservice.integration.identity.KeycloakIdentityOrigin.USER_SELF_REGISTRATION;
 
 @Component
 @RequiredArgsConstructor
@@ -49,15 +50,15 @@ public class KeycloakIdentityProvider implements IdentityProvider {
     }
 
     @Override
-    public void resumeMerchantIdentityRegistration(Email email) {
+    public void resumeUserIdentityRegistration(Email email) {
 
         keycloakAdminClient.findByEmail(email.getValue())
-                .filter(this::isMerchantSelfRegistration)
+                .filter(this::isUserSelfRegistration)
                 .ifPresent(user -> {
 
                     keycloakAdminClient.assignRealmRole(
                             user.id(),
-                            IdentityRole.MERCHANT.value()
+                            IdentityRole.USER.value()
                     );
 
                     if (!user.emailVerified()) {
@@ -68,14 +69,21 @@ public class KeycloakIdentityProvider implements IdentityProvider {
                 });
     }
 
-    private boolean isMerchantSelfRegistration(KeycloakUser user) {
+    private boolean isUserSelfRegistration(KeycloakUser user) {
 
         Map<String, List<String>> attributes = user.attributes();
 
-        return attributes != null
-                && attributes
-                        .getOrDefault(ATTRIBUTE, List.of())
-                        .contains(MERCHANT_SELF_REGISTRATION);
+        if (attributes == null) {
+            return false;
+        }
+
+        List<String> origins = attributes.getOrDefault(
+                ATTRIBUTE,
+                List.of()
+        );
+
+        return origins.contains(USER_SELF_REGISTRATION)
+                || origins.contains(LEGACY_MERCHANT_SELF_REGISTRATION);
     }
 
 }

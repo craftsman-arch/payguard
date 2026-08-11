@@ -20,18 +20,18 @@ public class RouteConfiguration {
 
         return builder.routes()
                 .route(
-                        "merchant-identity-registration",
+                        "user-identity-registration",
                         route -> route
                                 .method(HttpMethod.POST)
                                 .and()
-                                .path("/api/merchant-registrations")
+                                .path("/api/user-registrations")
                                 .filters(filter -> filter
                                         .filter(
                                                 rateLimitFilter
                                                         .identityRegistration()
                                         )
                                         .setPath(
-                                                "/api/v1/merchant-registrations"
+                                                "/api/v1/user-registrations"
                                         )
                                 )
                                 .uri(
@@ -39,12 +39,12 @@ public class RouteConfiguration {
                                 )
                 )
                 .route(
-                        "merchant-verification-email",
+                        "user-verification-email",
                         route -> route
                                 .method(HttpMethod.POST)
                                 .and()
                                 .path(
-                                        "/api/merchant-registrations/verification-email"
+                                        "/api/user-registrations/verification-email"
                                 )
                                 .filters(filter -> filter
                                         .filter(
@@ -52,7 +52,7 @@ public class RouteConfiguration {
                                                         .verificationEmail()
                                         )
                                         .setPath(
-                                                "/api/v1/merchant-registrations/verification-email"
+                                                "/api/v1/user-registrations/verification-email"
                                         )
                                 )
                                 .uri(

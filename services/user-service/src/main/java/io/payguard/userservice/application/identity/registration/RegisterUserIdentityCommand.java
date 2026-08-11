@@ -2,12 +2,12 @@ package io.payguard.userservice.application.identity.registration;
 
 import io.payguard.userservice.domain.merchant.value.Email;
 
-public record RegisterMerchantIdentityCommand(Email email, String password) {
+public record RegisterUserIdentityCommand(Email email, String password) {
 
     @Override
     public String toString() {
 
-        return "RegisterMerchantIdentityCommand[" +
+        return "RegisterUserIdentityCommand[" +
                 "email=" + email +
                 ", password=[REDACTED]" +
                 ']';

@@ -5,19 +5,19 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
-@Schema(description = "Merchant identity registration request.")
-public record RegisterMerchantIdentityRequest(
+@Schema(description = "User identity registration request.")
+public record RegisterUserIdentityRequest(
 
         @Schema(
-                description = "Merchant email address.",
-                example = "merchant@example.com"
+                description = "User email address.",
+                example = "user@example.com"
         )
         @Email
         @NotBlank
         String email,
 
         @Schema(
-                description = "Merchant-selected permanent password.",
+                description = "User-selected permanent password.",
                 format = "password",
                 accessMode = Schema.AccessMode.WRITE_ONLY
         )
@@ -30,7 +30,7 @@ public record RegisterMerchantIdentityRequest(
     @Override
     public String toString() {
 
-        return "RegisterMerchantIdentityRequest[" +
+        return "RegisterUserIdentityRequest[" +
                 "email=" + email +
                 ", password=[REDACTED]" +
                 ']';

@@ -7,15 +7,15 @@ import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
-public class RegisterMerchantIdentityService {
+public class RegisterUserIdentityService {
 
     private final IdentityProvider identityProvider;
 
-    public void execute(RegisterMerchantIdentityCommand command) {
+    public void execute(RegisterUserIdentityCommand command) {
 
         String identityUserId = identityProvider.createUser(command.email(), command.password());
 
-        identityProvider.assignRealmRole(identityUserId, IdentityRole.MERCHANT);
+        identityProvider.assignRealmRole(identityUserId, IdentityRole.USER);
         identityProvider.sendVerificationEmail(identityUserId);
     }
 }

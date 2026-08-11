@@ -4,12 +4,12 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 
-@Schema(description = "Merchant verification-email resend request.")
-public record ResendMerchantVerificationEmailRequest(
+@Schema(description = "User verification-email resend request.")
+public record ResendUserVerificationEmailRequest(
 
         @Schema(
-                description = "Merchant email address.",
-                example = "merchant@example.com"
+                description = "User email address.",
+                example = "user@example.com"
         )
         @Email
         @NotBlank

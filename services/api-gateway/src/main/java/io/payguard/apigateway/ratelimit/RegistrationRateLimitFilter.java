@@ -16,8 +16,8 @@ import java.util.Map;
 @Component
 public class RegistrationRateLimitFilter {
 
-    private static final String IDENTITY_REGISTRATION = "merchant-identity-registration";
-    private static final String VERIFICATION_EMAIL = "merchant-verification-email";
+    private static final String IDENTITY_REGISTRATION = "user-identity-registration";
+    private static final String VERIFICATION_EMAIL = "user-verification-email";
     private static final String RETRY_AFTER_SECONDS = "1";
     private static final String UNAVAILABLE_REMAINING = "-1";
 

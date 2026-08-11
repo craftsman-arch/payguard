@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.Map;
 
 import static io.payguard.userservice.integration.identity.KeycloakIdentityOrigin.ATTRIBUTE;
-import static io.payguard.userservice.integration.identity.KeycloakIdentityOrigin.MERCHANT_SELF_REGISTRATION;
+import static io.payguard.userservice.integration.identity.KeycloakIdentityOrigin.USER_SELF_REGISTRATION;
 
 @Component
 public class KeycloakMapper {
@@ -40,7 +40,7 @@ public class KeycloakMapper {
                 ),
                 Map.of(
                         ATTRIBUTE,
-                        List.of(MERCHANT_SELF_REGISTRATION)
+                        List.of(USER_SELF_REGISTRATION)
                 )
         );
     }

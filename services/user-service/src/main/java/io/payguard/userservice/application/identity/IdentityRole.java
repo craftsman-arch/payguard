@@ -2,7 +2,7 @@ package io.payguard.userservice.application.identity;
 
 public enum IdentityRole {
 
-    MERCHANT("MERCHANT"),
+    USER("USER"),
     ADMIN("ADMIN"),
     RISK_ANALYST("RISK_ANALYST");
 

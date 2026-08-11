@@ -1,8 +1,8 @@
-# Merchant registration and onboarding
+# User registration and merchant onboarding
 
 ```mermaid
 sequenceDiagram
-    actor Client as Merchant portal
+    actor Client as PayGuard client
     participant API as API Gateway
     participant UserService as User Service
     participant DB as PostgreSQL
@@ -10,10 +10,10 @@ sequenceDiagram
     participant Email as Email provider
     participant Stripe
 
-    Client->>API: POST /api/merchant-registrations (email, password)
-    API->>UserService: POST /api/v1/merchant-registrations
+    Client->>API: POST /api/user-registrations (email, password)
+    API->>UserService: POST /api/v1/user-registrations
     UserService->>Keycloak: Create enabled identity with permanent password
-    Note over UserService,Keycloak: MERCHANT; emailVerified=false; VERIFY_EMAIL; CONFIGURE_TOTP
+    Note over UserService,Keycloak: USER; emailVerified=false; VERIFY_EMAIL; CONFIGURE_TOTP
     UserService->>Keycloak: Request verification email
     Keycloak->>Email: Send verification link
     UserService-->>Client: 202 PENDING_VERIFICATION
@@ -53,8 +53,8 @@ sequenceDiagram
 
 ## Properties
 
-- Merchant registration does not use an invitation.
-- Identity registration accepts only email and the merchant-selected password.
+- User registration does not use an invitation.
+- Identity registration accepts only email and the user-selected password.
 - The password is forwarded to Keycloak as a permanent credential and is never
   stored in Merchant persistence, events or API responses.
 - Keycloak owns password policy, email verification and OTP credentials.
@@ -62,8 +62,10 @@ sequenceDiagram
   authentication token.
 - Verification-email recovery is idempotent and uses the managed
   `payguard.internal.identity_origin` marker to avoid converting staff
-  identities into merchants.
-- Merchant profile creation requires an authenticated `MERCHANT` with verified
+  identities into self-registered users.
+- New identities use `USER_SELF_REGISTRATION`; the legacy
+  `MERCHANT_SELF_REGISTRATION` marker remains readable during migration.
+- Merchant profile creation temporarily requires an authenticated `USER` with verified
   email. Identity ID and email are derived from trusted JWT claims.
 - Profile creation is idempotent for the authenticated identity.
 - Stripe onboarding is a separate authenticated stage.
