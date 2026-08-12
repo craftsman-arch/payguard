@@ -1,6 +1,6 @@
 package io.payguard.userservice.integration.persistence.repository;
 
-import io.payguard.userservice.domain.merchant.value.Email;
+import io.payguard.userservice.domain.common.value.Email;
 import io.payguard.userservice.integration.persistence.entity.MerchantEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 

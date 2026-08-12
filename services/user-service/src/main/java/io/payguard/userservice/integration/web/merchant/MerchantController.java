@@ -7,7 +7,7 @@ import io.payguard.userservice.application.merchant.profile.CreateMerchantProfil
 import io.payguard.userservice.application.merchant.profile.CreateMerchantProfileService;
 import io.payguard.userservice.application.merchant.query.CurrentMerchantQuery;
 import io.payguard.userservice.application.merchant.query.CurrentMerchantQueryService;
-import io.payguard.userservice.domain.merchant.value.Country;
+import io.payguard.userservice.domain.common.value.Country;
 import io.payguard.userservice.integration.web.common.ErrorResponse;
 import io.payguard.userservice.integration.web.common.ValidationErrorResponse;
 import io.payguard.userservice.integration.web.merchant.request.CreateMerchantProfileRequest;

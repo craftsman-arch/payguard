@@ -3,7 +3,7 @@ package io.payguard.userservice.integration.identity;
 
 import io.payguard.userservice.application.identity.IdentityProvider;
 import io.payguard.userservice.application.identity.IdentityRole;
-import io.payguard.userservice.domain.merchant.value.Email;
+import io.payguard.userservice.domain.common.value.Email;
 import io.payguard.userservice.integration.identity.client.KeycloakAdminClient;
 import io.payguard.userservice.integration.identity.dto.KeycloakUser;
 import io.payguard.userservice.integration.identity.mapper.KeycloakMapper;

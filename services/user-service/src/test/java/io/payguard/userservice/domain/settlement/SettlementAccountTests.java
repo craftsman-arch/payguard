@@ -1,6 +1,6 @@
 package io.payguard.userservice.domain.settlement;
 
-import io.payguard.userservice.domain.merchant.value.Country;
+import io.payguard.userservice.domain.common.value.Country;
 import io.payguard.userservice.domain.settlement.exception.SettlementAccountAlreadyLinkedException;
 import io.payguard.userservice.domain.settlement.value.AccountHolderName;
 import io.payguard.userservice.domain.settlement.value.SettlementAccountId;

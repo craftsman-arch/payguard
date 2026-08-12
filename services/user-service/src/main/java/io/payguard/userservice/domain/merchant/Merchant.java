@@ -2,8 +2,8 @@ package io.payguard.userservice.domain.merchant;
 
 import io.payguard.userservice.domain.merchant.exception.*;
 import io.payguard.userservice.domain.merchant.event.MerchantPaymentStateChanged;
-import io.payguard.userservice.domain.merchant.value.Country;
-import io.payguard.userservice.domain.merchant.value.Email;
+import io.payguard.userservice.domain.common.value.Country;
+import io.payguard.userservice.domain.common.value.Email;
 import lombok.Getter;
 import lombok.NonNull;
 

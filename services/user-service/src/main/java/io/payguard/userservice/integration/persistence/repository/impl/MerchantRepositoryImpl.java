@@ -4,7 +4,7 @@ import io.payguard.userservice.domain.merchant.Merchant;
 import io.payguard.userservice.domain.merchant.MerchantRepository;
 import io.payguard.userservice.domain.merchant.exception.ConcurrentMerchantModificationException;
 import io.payguard.userservice.domain.merchant.exception.MerchantAlreadyExistsException;
-import io.payguard.userservice.domain.merchant.value.Email;
+import io.payguard.userservice.domain.common.value.Email;
 import io.payguard.userservice.integration.persistence.mapper.MerchantMapper;
 import io.payguard.userservice.integration.persistence.repository.MerchantJpaRepository;
 import lombok.RequiredArgsConstructor;

@@ -1,7 +1,7 @@
 package io.payguard.userservice.domain.user;
 
-import io.payguard.userservice.domain.merchant.value.Country;
-import io.payguard.userservice.domain.merchant.value.Email;
+import io.payguard.userservice.domain.common.value.Country;
+import io.payguard.userservice.domain.common.value.Email;
 import io.payguard.userservice.domain.user.exception.InvalidUserRevisionException;
 import io.payguard.userservice.domain.user.exception.UserAlreadyActiveException;
 import io.payguard.userservice.domain.user.exception.UserAlreadySuspendedException;

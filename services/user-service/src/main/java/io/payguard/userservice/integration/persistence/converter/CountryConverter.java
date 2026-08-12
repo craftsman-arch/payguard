@@ -1,6 +1,6 @@
 package io.payguard.userservice.integration.persistence.converter;
 
-import io.payguard.userservice.domain.merchant.value.Country;
+import io.payguard.userservice.domain.common.value.Country;
 import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Converter;
 

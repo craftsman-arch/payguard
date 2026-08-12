@@ -1,6 +1,6 @@
-package io.payguard.userservice.domain.merchant.value;
+package io.payguard.userservice.domain.common.value;
 
-import io.payguard.userservice.domain.merchant.exception.InvalidCountryException;
+import io.payguard.userservice.domain.common.exception.InvalidCountryException;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 

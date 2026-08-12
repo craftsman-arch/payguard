@@ -1,6 +1,6 @@
 package io.payguard.userservice.domain.merchant;
 
-import io.payguard.userservice.domain.merchant.value.Email;
+import io.payguard.userservice.domain.common.value.Email;
 
 import java.util.Optional;
 import java.util.UUID;

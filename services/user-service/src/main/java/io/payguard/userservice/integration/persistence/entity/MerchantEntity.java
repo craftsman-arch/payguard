@@ -4,8 +4,8 @@ import io.payguard.userservice.domain.merchant.BusinessType;
 import io.payguard.userservice.domain.merchant.MerchantStatus;
 import io.payguard.userservice.domain.merchant.PaymentAccountRequiredAction;
 import io.payguard.userservice.domain.merchant.PaymentAccountStatus;
-import io.payguard.userservice.domain.merchant.value.Country;
-import io.payguard.userservice.domain.merchant.value.Email;
+import io.payguard.userservice.domain.common.value.Country;
+import io.payguard.userservice.domain.common.value.Email;
 import jakarta.persistence.*;
 import lombok.*;
 

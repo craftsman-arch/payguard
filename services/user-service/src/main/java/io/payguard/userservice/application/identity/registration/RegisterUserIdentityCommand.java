@@ -1,6 +1,6 @@
 package io.payguard.userservice.application.identity.registration;
 
-import io.payguard.userservice.domain.merchant.value.Email;
+import io.payguard.userservice.domain.common.value.Email;
 
 public record RegisterUserIdentityCommand(Email email, String password) {
 

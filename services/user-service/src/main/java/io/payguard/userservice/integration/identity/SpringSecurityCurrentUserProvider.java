@@ -2,7 +2,7 @@ package io.payguard.userservice.integration.identity;
 
 import io.payguard.userservice.application.identity.CurrentUserProvider;
 import io.payguard.userservice.application.identity.AuthenticatedUser;
-import io.payguard.userservice.domain.merchant.value.Email;
+import io.payguard.userservice.domain.common.value.Email;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;

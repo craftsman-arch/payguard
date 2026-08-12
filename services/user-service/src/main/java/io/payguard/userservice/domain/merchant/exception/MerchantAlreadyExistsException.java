@@ -1,6 +1,6 @@
 package io.payguard.userservice.domain.merchant.exception;
 
-import io.payguard.userservice.domain.merchant.value.Email;
+import io.payguard.userservice.domain.common.value.Email;
 
 public class MerchantAlreadyExistsException extends MerchantException {
 

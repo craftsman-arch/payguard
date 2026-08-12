@@ -1,6 +1,6 @@
-package io.payguard.userservice.domain.merchant.exception;
+package io.payguard.userservice.domain.common.exception;
 
-public class InvalidCountryException extends MerchantException {
+public class InvalidCountryException extends DomainValueException {
 
     public InvalidCountryException() {
         super("Country cannot be null or blank.");

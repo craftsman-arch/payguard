@@ -1,6 +1,6 @@
-package io.payguard.userservice.domain.merchant.value;
+package io.payguard.userservice.domain.common.value;
 
-import io.payguard.userservice.domain.merchant.exception.InvalidEmailException;
+import io.payguard.userservice.domain.common.exception.InvalidEmailException;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 

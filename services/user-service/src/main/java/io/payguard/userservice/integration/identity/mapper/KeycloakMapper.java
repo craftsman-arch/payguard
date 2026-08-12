@@ -1,6 +1,6 @@
 package io.payguard.userservice.integration.identity.mapper;
 
-import io.payguard.userservice.domain.merchant.value.Email;
+import io.payguard.userservice.domain.common.value.Email;
 import io.payguard.userservice.integration.identity.dto.KeycloakCreateUserRequest;
 import io.payguard.userservice.integration.identity.dto.KeycloakCredential;
 import org.springframework.stereotype.Component;

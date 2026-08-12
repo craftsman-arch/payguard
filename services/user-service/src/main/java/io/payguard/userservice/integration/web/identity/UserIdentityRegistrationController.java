@@ -4,7 +4,7 @@ import io.payguard.userservice.application.identity.registration.RegisterUserIde
 import io.payguard.userservice.application.identity.registration.RegisterUserIdentityService;
 import io.payguard.userservice.application.identity.registration.ResendUserVerificationEmailCommand;
 import io.payguard.userservice.application.identity.registration.ResendUserVerificationEmailService;
-import io.payguard.userservice.domain.merchant.value.Email;
+import io.payguard.userservice.domain.common.value.Email;
 import io.payguard.userservice.integration.web.common.ErrorResponse;
 import io.payguard.userservice.integration.web.common.ValidationErrorResponse;
 import io.payguard.userservice.integration.web.identity.request.RegisterUserIdentityRequest;
