@@ -3,6 +3,8 @@ package io.payguard.userservice.integration.web.user;
 import io.payguard.userservice.application.user.profile.CreateUserProfileCommand;
 import io.payguard.userservice.application.user.profile.CreateUserProfileResult;
 import io.payguard.userservice.application.user.profile.CreateUserProfileService;
+import io.payguard.userservice.application.user.query.CurrentUserQuery;
+import io.payguard.userservice.application.user.query.CurrentUserQueryService;
 import io.payguard.userservice.domain.common.value.Country;
 import io.payguard.userservice.domain.settlement.value.AccountHolderName;
 import io.payguard.userservice.domain.user.value.DisplayName;
@@ -10,6 +12,7 @@ import io.payguard.userservice.integration.web.common.ErrorResponse;
 import io.payguard.userservice.integration.web.common.ValidationErrorResponse;
 import io.payguard.userservice.integration.web.user.request.CreateUserProfileRequest;
 import io.payguard.userservice.integration.web.user.response.CreateUserProfileResponse;
+import io.payguard.userservice.integration.web.user.response.CurrentUserResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -22,6 +25,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -33,6 +37,8 @@ import org.springframework.web.bind.annotation.RestController;
 public class UserController {
 
     private final CreateUserProfileService createUserProfileService;
+    private final CurrentUserQueryService currentUserQueryService;
+    private final UserWebMapper mapper;
 
     @Operation(
             summary = "Create user profile",
@@ -82,5 +88,26 @@ public class UserController {
                         result.id(),
                         result.status()
                 ));
+    }
+
+    @Operation(summary = "Get current user profile")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Profile returned."),
+            @ApiResponse(responseCode = "401", description = "Authentication required."),
+            @ApiResponse(responseCode = "403", description = "USER role is missing."),
+            @ApiResponse(
+                    responseCode = "404",
+                    description = "User profile or settlement account was not found.",
+                    content = @Content(schema = @Schema(
+                            implementation = ErrorResponse.class
+                    ))
+            )
+    })
+    @GetMapping("/me")
+    @PreAuthorize("hasRole('USER')")
+    public CurrentUserResponse currentUser() {
+        return mapper.toResponse(
+                currentUserQueryService.execute(new CurrentUserQuery())
+        );
     }
 }

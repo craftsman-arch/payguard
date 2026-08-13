@@ -69,6 +69,16 @@ public class RouteConfiguration {
                                 .uri(properties.userService().uri())
                 )
                 .route(
+                        "user-profile-operations",
+                        route -> route
+                                .path("/api/users/**")
+                                .filters(filter -> filter.rewritePath(
+                                        "/api/users/(?<segment>.*)",
+                                        "/api/v1/users/${segment}"
+                                ))
+                                .uri(properties.userService().uri())
+                )
+                .route(
                         "merchant-profile",
                         route -> route
                                 .path("/api/merchants")

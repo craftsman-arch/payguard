@@ -9,9 +9,11 @@ import io.payguard.userservice.domain.merchant.exception.MerchantAlreadyExistsEx
 import io.payguard.userservice.domain.settlement.exception.ConcurrentSettlementAccountModificationException;
 import io.payguard.userservice.domain.settlement.exception.SettlementAccountAlreadyExistsException;
 import io.payguard.userservice.domain.settlement.exception.SettlementAccountException;
+import io.payguard.userservice.domain.settlement.exception.SettlementAccountNotFoundException;
 import io.payguard.userservice.domain.user.exception.ConcurrentUserModificationException;
 import io.payguard.userservice.domain.user.exception.UserAlreadyExistsException;
 import io.payguard.userservice.domain.user.exception.UserException;
+import io.payguard.userservice.domain.user.exception.UserNotFoundException;
 import io.payguard.userservice.domain.user.exception.UnverifiedUserIdentityException;
 import io.payguard.userservice.domain.merchant.exception.MerchantException;
 import io.payguard.userservice.domain.merchant.exception.MerchantNotFoundException;
@@ -173,9 +175,13 @@ public class GlobalExceptionHandler {
         return buildErrorResponse(HttpStatus.CONFLICT, exception, request);
     }
 
-    @ExceptionHandler(MerchantNotFoundException.class)
+    @ExceptionHandler({
+            MerchantNotFoundException.class,
+            UserNotFoundException.class,
+            SettlementAccountNotFoundException.class
+    })
     public ResponseEntity<ErrorResponse> handleNotFound(
-            MerchantNotFoundException exception,
+            RuntimeException exception,
             HttpServletRequest request
     ) {
         return buildErrorResponse(HttpStatus.NOT_FOUND, exception, request);
