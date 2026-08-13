@@ -2,6 +2,8 @@ package io.payguard.userservice.application.merchant.payment;
 
 import io.payguard.userservice.application.identity.CurrentUserProvider;
 import io.payguard.userservice.application.payment.PaymentProvider;
+import io.payguard.userservice.application.payment.SettlementAccountOnboardingRequest;
+import io.payguard.userservice.application.payment.SettlementAccountProvisioningRequest;
 import io.payguard.userservice.domain.merchant.Merchant;
 import io.payguard.userservice.domain.merchant.exception.ConcurrentMerchantModificationException;
 import io.payguard.userservice.integration.payment.error.exception.StripeProviderRejectedException;
@@ -49,7 +51,12 @@ public class StartMerchantPaymentOnboardingService {
             );
         }
 
-        String onboardingUrl = paymentProvider.createMerchantOnboardingLink(merchant);
+        String onboardingUrl = paymentProvider
+                .createSettlementAccountOnboardingLink(
+                        new SettlementAccountOnboardingRequest(
+                                merchant.getPaymentAccountId()
+                        )
+                );
 
         return new MerchantOnboardingLink(onboardingUrl);
     }
@@ -60,7 +67,14 @@ public class StartMerchantPaymentOnboardingService {
 
         try {
 
-            paymentAccountId = paymentProvider.createMerchantAccount(merchant);
+            paymentAccountId = paymentProvider.createSettlementAccount(
+                    new SettlementAccountProvisioningRequest(
+                            "merchant-account:" + merchant.getId(),
+                            merchant.getEmail().getValue(),
+                            merchant.getCountry().getValue(),
+                            merchant.getBusinessType().name()
+                    )
+            );
 
         } catch (StripeProviderRejectedException exception) {
 

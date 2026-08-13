@@ -1,6 +1,7 @@
 package io.payguard.userservice.integration.payment.account.mapper;
 
-import io.payguard.userservice.domain.merchant.Merchant;
+import io.payguard.userservice.application.payment.SettlementAccountOnboardingRequest;
+import io.payguard.userservice.application.payment.SettlementAccountProvisioningRequest;
 import io.payguard.userservice.integration.payment.account.dto.StripeAccountLinkRequest;
 import io.payguard.userservice.integration.payment.account.dto.StripeAccountRequest;
 import io.payguard.userservice.integration.payment.config.StripeProperties;
@@ -15,22 +16,25 @@ public class StripeAccountMapper {
 
     private final StripeProperties properties;
 
-    public StripeAccountRequest toCreateAccountRequest(Merchant merchant) {
+    public StripeAccountRequest toCreateAccountRequest(
+            SettlementAccountProvisioningRequest request
+    ) {
 
         return new StripeAccountRequest(
                 "express",
-                merchant.getCountry().getValue(),
-                merchant.getEmail().getValue(),
-                merchant.getBusinessType()
-                        .name()
+                request.country(),
+                request.email(),
+                request.accountHolderType()
                         .toLowerCase(Locale.ROOT)
         );
     }
 
-    public StripeAccountLinkRequest toCreateAccountLinkRequest(Merchant merchant) {
+    public StripeAccountLinkRequest toCreateAccountLinkRequest(
+            SettlementAccountOnboardingRequest request
+    ) {
 
         return new StripeAccountLinkRequest(
-                merchant.getPaymentAccountId(),
+                request.providerAccountId(),
                 properties.refreshUrl(),
                 properties.returnUrl(),
                 "account_onboarding"

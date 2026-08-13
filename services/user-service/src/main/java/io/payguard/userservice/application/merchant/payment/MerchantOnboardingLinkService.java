@@ -2,6 +2,7 @@ package io.payguard.userservice.application.merchant.payment;
 
 import io.payguard.userservice.application.identity.CurrentUserProvider;
 import io.payguard.userservice.application.payment.PaymentProvider;
+import io.payguard.userservice.application.payment.SettlementAccountOnboardingRequest;
 import io.payguard.userservice.domain.merchant.Merchant;
 import io.payguard.userservice.domain.merchant.MerchantRepository;
 import io.payguard.userservice.domain.merchant.exception.MerchantNotEligibleForReonboardingException;
@@ -33,7 +34,11 @@ public class MerchantOnboardingLinkService {
         }
 
         String onboardingUrl =
-                paymentProvider.createMerchantOnboardingLink(merchant);
+                paymentProvider.createSettlementAccountOnboardingLink(
+                        new SettlementAccountOnboardingRequest(
+                                merchant.getPaymentAccountId()
+                        )
+                );
 
         return new MerchantOnboardingLink(onboardingUrl);
     }

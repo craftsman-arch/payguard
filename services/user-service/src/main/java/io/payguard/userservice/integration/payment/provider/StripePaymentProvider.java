@@ -1,7 +1,8 @@
 package io.payguard.userservice.integration.payment.provider;
 
 import io.payguard.userservice.application.payment.PaymentProvider;
-import io.payguard.userservice.domain.merchant.Merchant;
+import io.payguard.userservice.application.payment.SettlementAccountOnboardingRequest;
+import io.payguard.userservice.application.payment.SettlementAccountProvisioningRequest;
 import io.payguard.userservice.integration.payment.account.mapper.StripeAccountMapper;
 import io.payguard.userservice.integration.payment.client.StripeClient;
 import lombok.RequiredArgsConstructor;
@@ -15,23 +16,24 @@ public class StripePaymentProvider implements PaymentProvider {
     private final StripeAccountMapper mapper;
 
     @Override
-    public String createMerchantAccount(Merchant merchant) {
+    public String createSettlementAccount(
+            SettlementAccountProvisioningRequest request
+    ) {
 
         return stripeClient.createAccount(
-
-                mapper.toCreateAccountRequest(
-                        merchant
-                ),
-
-                "merchant-account:"
-                        + merchant.getId()
+                mapper.toCreateAccountRequest(request),
+                request.idempotencyKey()
         );
     }
 
     @Override
-    public String createMerchantOnboardingLink(Merchant merchant) {
+    public String createSettlementAccountOnboardingLink(
+            SettlementAccountOnboardingRequest request
+    ) {
 
-        return stripeClient.createAccountLink(mapper.toCreateAccountLinkRequest(merchant));
+        return stripeClient.createAccountLink(
+                mapper.toCreateAccountLinkRequest(request)
+        );
     }
 
 }
