@@ -6,6 +6,9 @@ import io.payguard.userservice.application.event.recovery.OutboxEventNotFoundExc
 import io.payguard.userservice.application.time.TimeProvider;
 import io.payguard.userservice.domain.common.exception.DomainValueException;
 import io.payguard.userservice.domain.merchant.exception.MerchantAlreadyExistsException;
+import io.payguard.userservice.domain.settlement.exception.ConcurrentSettlementAccountModificationException;
+import io.payguard.userservice.domain.settlement.exception.SettlementAccountAlreadyExistsException;
+import io.payguard.userservice.domain.settlement.exception.SettlementAccountException;
 import io.payguard.userservice.domain.user.exception.ConcurrentUserModificationException;
 import io.payguard.userservice.domain.user.exception.UserAlreadyExistsException;
 import io.payguard.userservice.domain.user.exception.UserException;
@@ -155,7 +158,9 @@ public class GlobalExceptionHandler {
     @ExceptionHandler({
             MerchantAlreadyExistsException.class,
             UserAlreadyExistsException.class,
-            ConcurrentUserModificationException.class
+            ConcurrentUserModificationException.class,
+            SettlementAccountAlreadyExistsException.class,
+            ConcurrentSettlementAccountModificationException.class
     })
     public ResponseEntity<ErrorResponse> handleConflict(
             RuntimeException exception,
@@ -175,6 +180,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler({
             MerchantException.class,
             UserException.class,
+            SettlementAccountException.class,
             DomainValueException.class
     })
     public ResponseEntity<ErrorResponse> handleDomainException(
