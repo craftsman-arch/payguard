@@ -12,6 +12,7 @@ import io.payguard.userservice.domain.settlement.exception.SettlementAccountExce
 import io.payguard.userservice.domain.user.exception.ConcurrentUserModificationException;
 import io.payguard.userservice.domain.user.exception.UserAlreadyExistsException;
 import io.payguard.userservice.domain.user.exception.UserException;
+import io.payguard.userservice.domain.user.exception.UnverifiedUserIdentityException;
 import io.payguard.userservice.domain.merchant.exception.MerchantException;
 import io.payguard.userservice.domain.merchant.exception.MerchantNotFoundException;
 import io.payguard.userservice.domain.merchant.exception.UnverifiedMerchantIdentityException;
@@ -136,14 +137,17 @@ public class GlobalExceptionHandler {
         );
     }
 
-    @ExceptionHandler(UnverifiedMerchantIdentityException.class)
-    public ResponseEntity<ErrorResponse> handleUnverifiedMerchantIdentity(
-            UnverifiedMerchantIdentityException exception,
+    @ExceptionHandler({
+            UnverifiedMerchantIdentityException.class,
+            UnverifiedUserIdentityException.class
+    })
+    public ResponseEntity<ErrorResponse> handleUnverifiedUserIdentity(
+            RuntimeException exception,
             HttpServletRequest request
     ) {
 
         log.warn(
-                "Unverified merchant identity attempted to create a profile [{} {}].",
+                "Unverified user identity attempted to create a profile [{} {}].",
                 request.getMethod(),
                 request.getRequestURI()
         );

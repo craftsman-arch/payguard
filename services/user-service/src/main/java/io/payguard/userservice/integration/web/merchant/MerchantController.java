@@ -2,16 +2,9 @@ package io.payguard.userservice.integration.web.merchant;
 
 import io.payguard.userservice.application.merchant.payment.MerchantOnboardingLinkService;
 import io.payguard.userservice.application.merchant.payment.StartMerchantPaymentOnboardingService;
-import io.payguard.userservice.application.merchant.profile.CreateMerchantProfileCommand;
-import io.payguard.userservice.application.merchant.profile.CreateMerchantProfileResult;
-import io.payguard.userservice.application.merchant.profile.CreateMerchantProfileService;
 import io.payguard.userservice.application.merchant.query.CurrentMerchantQuery;
 import io.payguard.userservice.application.merchant.query.CurrentMerchantQueryService;
-import io.payguard.userservice.domain.common.value.Country;
 import io.payguard.userservice.integration.web.common.ErrorResponse;
-import io.payguard.userservice.integration.web.common.ValidationErrorResponse;
-import io.payguard.userservice.integration.web.merchant.request.CreateMerchantProfileRequest;
-import io.payguard.userservice.integration.web.merchant.response.CreateMerchantProfileResponse;
 import io.payguard.userservice.integration.web.merchant.response.CurrentMerchantResponse;
 import io.payguard.userservice.integration.web.merchant.response.MerchantOnboardingLinkResponse;
 import io.swagger.v3.oas.annotations.Operation;
@@ -36,95 +29,10 @@ import org.springframework.web.bind.annotation.*;
 )
 public class MerchantController {
 
-    private final CreateMerchantProfileService createMerchantProfileService;
     private final CurrentMerchantQueryService currentMerchantQueryService;
     private final MerchantOnboardingLinkService merchantOnboardingLinkService;
     private final StartMerchantPaymentOnboardingService startPaymentOnboardingService;
     private final MerchantWebMapper mapper;
-
-    @Operation(
-            summary = "Create merchant profile",
-            description = """
-                Creates the business profile for the authenticated merchant.
-                Identity ownership and email are derived from the verified JWT;
-                the browser supplies only business information.
-
-                Repeating the request for the same authenticated identity
-                returns the existing Merchant instead of creating a duplicate.
-                Stripe onboarding is started through a separate endpoint.
-                """
-    )
-    @ApiResponses({
-            @ApiResponse(
-                    responseCode = "201",
-                    description = "Merchant profile created.",
-                    content = @Content(
-                            mediaType = "application/json",
-                            schema = @Schema(
-                                    implementation = CreateMerchantProfileResponse.class
-                            )
-                    )
-            ),
-            @ApiResponse(
-                    responseCode = "200",
-                    description = "Existing Merchant profile returned.",
-                    content = @Content(
-                            mediaType = "application/json",
-                            schema = @Schema(
-                                    implementation = CreateMerchantProfileResponse.class
-                            )
-                    )
-            ),
-            @ApiResponse(
-                    responseCode = "400",
-                    description = "Validation failed.",
-                    content = @Content(
-                            schema = @Schema(
-                                    implementation = ValidationErrorResponse.class
-                            )
-                    )
-            ),
-            @ApiResponse(
-                    responseCode = "401",
-                    description = "Authentication is missing or invalid."
-            ),
-            @ApiResponse(
-                    responseCode = "403",
-                    description = "USER role or verified email is missing.",
-                    content = @Content(
-                            schema = @Schema(implementation = ErrorResponse.class)
-                    )
-            )
-    })
-    @PostMapping
-    @PreAuthorize("hasRole('USER')")
-    public ResponseEntity<CreateMerchantProfileResponse> createProfile(
-            @Valid @RequestBody CreateMerchantProfileRequest request
-    ) {
-
-        CreateMerchantProfileResult result =
-                createMerchantProfileService.execute(
-                        new CreateMerchantProfileCommand(
-                                request.legalName(),
-                                request.businessType(),
-                                Country.of(request.country())
-                        )
-                );
-
-        CreateMerchantProfileResponse response =
-                new CreateMerchantProfileResponse(
-                        result.id(),
-                        result.status()
-                );
-
-        return ResponseEntity
-                .status(
-                        result.created()
-                                ? HttpStatus.CREATED
-                                : HttpStatus.OK
-                )
-                .body(response);
-    }
 
     @Operation(
             summary = "Get current merchant",

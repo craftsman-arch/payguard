@@ -60,6 +60,15 @@ public class RouteConfiguration {
                                 )
                 )
                 .route(
+                        "user-profile",
+                        route -> route
+                                .path("/api/users")
+                                .filters(filter -> filter.setPath(
+                                        "/api/v1/users"
+                                ))
+                                .uri(properties.userService().uri())
+                )
+                .route(
                         "merchant-profile",
                         route -> route
                                 .path("/api/merchants")
